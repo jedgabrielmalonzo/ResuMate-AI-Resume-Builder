@@ -31,8 +31,18 @@ export default function ResumeDocument({ data, templateId }: Props) {
             {section.content.split('\n').map((line, i) => {
               if (!line.trim()) return null;
               const isBullet = line.trimStart().startsWith('•');
+              const isTargetRoleLine = /^(Desired Position|Target Role)\s*:/i.test(
+                line.trim()
+              );
               return (
-                <Text key={i} style={[styles.contentLine, isBullet && styles.bullet]}>
+                <Text
+                  key={i}
+                  style={[
+                    styles.contentLine,
+                    isBullet && styles.bullet,
+                    isTargetRoleLine && styles.targetRoleLine,
+                  ]}
+                >
                   {line}
                 </Text>
               );
@@ -82,5 +92,13 @@ const styles = StyleSheet.create({
   },
   bullet: {
     paddingLeft: 8,
+  },
+  targetRoleLine: {
+    fontWeight: '700',
+    fontSize: 14,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    color: '#1f2937',
+    marginBottom: 4,
   },
 });

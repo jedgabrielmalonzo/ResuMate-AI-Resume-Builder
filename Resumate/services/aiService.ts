@@ -10,6 +10,72 @@ type TemplateRecommendation = {
   reason: string;
 };
 
+function normalizeRole(role: string): string {
+  return role
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+function ensureTargetRoleInResume(
+  data: GeneratedResumeData,
+  targetRoleRaw: string | undefined,
+  template: ResumeTemplate
+): GeneratedResumeData {
+  const targetRole = (targetRoleRaw ?? '').trim();
+  if (!targetRole) return data;
+
+  const normalizedRole = normalizeRole(targetRole);
+  const formalRoleLine = `Desired Position: ${normalizedRole}`;
+  const sectionTitles = data.sections.map((s) => s.title.toLowerCase());
+
+  // 1) Prefer writing into an existing "Target Role" section if present.
+  const targetRoleIndex = data.sections.findIndex(
+    (s) => s.title.toLowerCase() === 'target role'
+  );
+  if (targetRoleIndex >= 0) {
+    const updated = [...data.sections];
+    updated[targetRoleIndex] = {
+      ...updated[targetRoleIndex],
+      content: formalRoleLine,
+    };
+    return { sections: updated };
+  }
+
+  // 2) Otherwise prepend it to the most suitable summary/objective section.
+  const preferredSectionTitles = [
+    'career objective',
+    'professional summary',
+    'summary of qualifications',
+    'objective',
+    'profile',
+  ];
+  const preferredIndex = data.sections.findIndex((s) =>
+    preferredSectionTitles.includes(s.title.toLowerCase())
+  );
+
+  if (preferredIndex >= 0) {
+    const existing = data.sections[preferredIndex].content;
+    const hasRoleAlready = existing.toLowerCase().includes(normalizedRole.toLowerCase());
+    const updated = [...data.sections];
+    updated[preferredIndex] = {
+      ...updated[preferredIndex],
+      content: hasRoleAlready ? existing : `${formalRoleLine}\n${existing}`.trim(),
+    };
+    return { sections: updated };
+  }
+
+  // 3) If no suitable section exists, insert a dedicated section near the top.
+  const contactIdx = sectionTitles.findIndex((title) => title.includes('contact'));
+  const insertAt = contactIdx >= 0 ? contactIdx + 1 : 0;
+  const inserted = [...data.sections];
+  inserted.splice(insertAt, 0, {
+    title: template.formatType === 'mini' ? 'Target Role' : 'Career Objective',
+    content: formalRoleLine,
+  });
+  return { sections: inserted };
+}
+
 function getFormatInstructions(template: ResumeTemplate): string {
   switch (template.formatType) {
     case 'chronological':
@@ -113,8 +179,8 @@ Instructions:
   const raw = await callGeminiAPI(prompt);
   // Strip markdown code fences if present
   const cleaned = raw.replace(/```json|```/g, '').trim();
-  const parsed = JSON.parse(cleaned);
-  return parsed as GeneratedResumeData;
+  const parsed = JSON.parse(cleaned) as GeneratedResumeData;
+  return ensureTargetRoleInResume(parsed, userData?.targetRole, template);
 }
 
 export async function getTemplateRecommendations(

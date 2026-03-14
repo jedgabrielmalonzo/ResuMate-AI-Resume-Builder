@@ -18,7 +18,13 @@ function buildResumeHTML(data: GeneratedResumeData, templateId: string): string 
       const lines = section.content.split('\n').filter((l) => l.trim());
       const paragraphs = lines
         .filter((line) => !line.trimStart().startsWith('•'))
-        .map((line) => `<p style="margin:4px 0">${line}</p>`)
+        .map((line) => {
+          const isTargetRoleLine = /^(Desired Position|Target Role)\s*:/i.test(line.trim());
+          if (isTargetRoleLine) {
+            return `<p style="margin:4px 0 8px;text-align:center;font-weight:700;font-size:14px;letter-spacing:0.3px;color:#1f2937">${line}</p>`;
+          }
+          return `<p style="margin:4px 0">${line}</p>`;
+        })
         .join('');
       const bulletItems = lines
         .filter((line) => line.trimStart().startsWith('•'))
