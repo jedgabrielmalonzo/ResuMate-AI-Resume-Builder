@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -27,7 +28,13 @@ export default function ResumeResultScreen() {
     if (!generatedResumeData) return;
     try {
       setSaving(true);
-      await exportResumeToPDF(generatedResumeData, templateId);
+      const savedFile = await exportResumeToPDF(generatedResumeData, templateId);
+      Alert.alert(
+        'Resume Saved',
+        Platform.OS === 'android'
+          ? `Your resume has been saved as ${savedFile.fileName}.\n\nTip: On first save, choose your Downloads folder when prompted.`
+          : `Your resume has been saved as ${savedFile.fileName}.`
+      );
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Could not save PDF.');
     } finally {
@@ -73,7 +80,7 @@ export default function ResumeResultScreen() {
             {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.pdfBtnText}>💾  Save as PDF</Text>
+              <Text style={styles.pdfBtnText}>Save Document</Text>
             )}
           </TouchableOpacity>
 
