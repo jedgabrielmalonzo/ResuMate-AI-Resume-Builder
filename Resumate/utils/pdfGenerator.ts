@@ -3,26 +3,30 @@ import * as Sharing from 'expo-sharing';
 import { GeneratedResumeData } from '@/context/ResumeContext';
 
 const TEMPLATE_COLORS: Record<string, { accent: string; text: string }> = {
-  classic: { accent: '#2c3e50', text: '#ffffff' },
-  modern: { accent: '#c40000', text: '#ffffff' },
-  it: { accent: '#1565c0', text: '#ffffff' },
+  chronological: { accent: '#2c3e50', text: '#ffffff' },
+  functional: { accent: '#6a1b9a', text: '#ffffff' },
+  hybrid: { accent: '#1565c0', text: '#ffffff' },
+  mini: { accent: '#ef6c00', text: '#ffffff' },
+  'student-entry': { accent: '#00897b', text: '#ffffff' },
 };
 
 function buildResumeHTML(data: GeneratedResumeData, templateId: string): string {
-  const colors = TEMPLATE_COLORS[templateId] ?? TEMPLATE_COLORS.classic;
+  const colors = TEMPLATE_COLORS[templateId] ?? TEMPLATE_COLORS.chronological;
 
   const sectionsHTML = data.sections
     .map((section) => {
-      const lines = section.content
-        .split('\n')
-        .filter((l) => l.trim())
-        .map((line) => {
-          if (line.trimStart().startsWith('•')) {
-            return `<li>${line.replace(/^\s*•\s*/, '').trim()}</li>`;
-          }
-          return `<p style="margin:4px 0">${line}</p>`;
-        })
+      const lines = section.content.split('\n').filter((l) => l.trim());
+      const paragraphs = lines
+        .filter((line) => !line.trimStart().startsWith('•'))
+        .map((line) => `<p style="margin:4px 0">${line}</p>`)
         .join('');
+      const bulletItems = lines
+        .filter((line) => line.trimStart().startsWith('•'))
+        .map((line) => `<li>${line.replace(/^\s*•\s*/, '').trim()}</li>`)
+        .join('');
+      const bullets = bulletItems
+        ? `<ul style="margin:6px 0 0;padding-left:16px;list-style:disc">${bulletItems}</ul>`
+        : '';
 
       return `
         <div style="margin-bottom:20px">
@@ -30,7 +34,8 @@ function buildResumeHTML(data: GeneratedResumeData, templateId: string): string 
             <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px">${section.title}</span>
           </div>
           <div style="padding:0 4px;font-size:13px;color:#333;line-height:1.65">
-            <ul style="margin:0;padding-left:16px;list-style:disc">${lines}</ul>
+            ${paragraphs}
+            ${bullets}
           </div>
         </div>`;
     })

@@ -17,7 +17,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
-import { Colors } from '../../constants/theme';
 import { useThemeColor } from '../../hooks/use-theme-color';
 import BackButton from '@/components/ui/BackButton';
 
@@ -58,11 +57,61 @@ interface Achievement {
   description: string;
 }
 
+interface Project {
+  name: string;
+  role: string;
+  techStack: string;
+  date: string;
+  description: string;
+  link: string;
+}
+
+type ResumeInputFieldProps = {
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  textColor: string;
+  multiline?: boolean;
+  numberOfLines?: number;
+  keyboardType?: 'default' | 'email-address' | 'phone-pad';
+  containerStyle?: any;
+};
+
+function ResumeInputField({
+  placeholder,
+  value,
+  onChangeText,
+  textColor,
+  multiline = false,
+  numberOfLines = 1,
+  keyboardType = 'default',
+  containerStyle = {},
+  ...props
+}: ResumeInputFieldProps) {
+  return (
+    <View style={[styles.inputContainer, containerStyle]}>
+      <TextInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        style={[
+          styles.textInput,
+          { color: textColor },
+          multiline && styles.multilineInput
+        ]}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        keyboardType={keyboardType}
+        placeholderTextColor="#999"
+        {...props}
+      />
+    </View>
+  );
+}
+
 export default function ResumeFormScreen() {
   const textColor = useThemeColor({}, 'text');
-  const tintColor = useThemeColor({}, 'tint');
-  const backgroundColor = useThemeColor({}, 'background');
-  const { setGeneratedResumeData } = useResumeContext();
+  const { setGeneratedResumeData, setSelectedTemplateId: setContextSelectedTemplateId } = useResumeContext();
   const router = useRouter();
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
@@ -77,6 +126,7 @@ export default function ResumeFormScreen() {
   });
 
   const [professionalSummary, setProfessionalSummary] = useState('');
+  const [targetRole, setTargetRole] = useState('');
   
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([
     {
@@ -100,6 +150,17 @@ export default function ResumeFormScreen() {
   ]);
 
   const [skills, setSkills] = useState<string[]>(['']);
+
+  const [projects, setProjects] = useState<Project[]>([
+    {
+      name: '',
+      role: '',
+      techStack: '',
+      date: '',
+      description: '',
+      link: '',
+    },
+  ]);
 
   const [achievements, setAchievements] = useState<Achievement[]>([
     {
@@ -186,6 +247,32 @@ export default function ResumeFormScreen() {
     }
   };
 
+  const updateProject = (index: number, field: keyof Project, value: string) => {
+    const updated = [...projects];
+    updated[index] = { ...updated[index], [field]: value };
+    setProjects(updated);
+  };
+
+  const addProject = () => {
+    setProjects([
+      ...projects,
+      {
+        name: '',
+        role: '',
+        techStack: '',
+        date: '',
+        description: '',
+        link: '',
+      },
+    ]);
+  };
+
+  const removeProject = (index: number) => {
+    if (projects.length > 1) {
+      setProjects(projects.filter((_, i) => i !== index));
+    }
+  };
+
   const updateAchievement = (index: number, field: keyof Achievement, value: string) => {
     const updated = [...achievements];
     updated[index] = { ...updated[index], [field]: value };
@@ -210,7 +297,7 @@ export default function ResumeFormScreen() {
     }
   };
 
-  const [templateRecommendations, setTemplateRecommendations] = useState<any[]>([]);
+  const [templateRecommendations, setTemplateRecommendations] = useState<Array<{ id: string; reason: string }>>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -222,15 +309,18 @@ export default function ResumeFormScreen() {
     setGenerating(true);
     const userData = {
       personalInfo,
+      targetRole,
       professionalSummary,
       workExperience,
       education,
+      projects,
       skills,
       achievements,
     };
     try {
       const result = await generateResume(userData, template);
       setGeneratedResumeData(result);
+      setContextSelectedTemplateId(template.id);
       router.push('/resume/result');
     } catch (error) {
       Alert.alert('Error', 'Failed to generate resume. Please try again.');
@@ -244,13 +334,15 @@ export default function ResumeFormScreen() {
     
     const userData = {
       personalInfo,
+      targetRole,
       professionalSummary,
       workExperience,
       education,
+      projects,
       skills,
       achievements,
     };
-    const jobField = professionalSummary || '';
+    const jobField = targetRole || professionalSummary || '';
     try {
       const recommendations = await getTemplateRecommendations(userData, jobField, resumeTemplates);
       setTemplateRecommendations(recommendations);
@@ -261,43 +353,6 @@ export default function ResumeFormScreen() {
       setLoadingTemplates(false);
     }
   };
-
-  const InputField = ({ 
-    placeholder, 
-    value, 
-    onChangeText, 
-    multiline = false, 
-    numberOfLines = 1,
-    keyboardType = 'default',
-    containerStyle = {},
-    ...props 
-  }: {
-    placeholder: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    multiline?: boolean;
-    numberOfLines?: number;
-    keyboardType?: 'default' | 'email-address' | 'phone-pad';
-    containerStyle?: any;
-  }) => (
-    <View style={[styles.inputContainer, containerStyle]}>
-      <TextInput
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        style={[
-          styles.textInput,
-          { color: textColor },
-          multiline && styles.multilineInput
-        ]}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        keyboardType={keyboardType}
-        placeholderTextColor="#999"
-        {...props}
-      />
-    </View>
-  );
 
   const PrimaryButton = ({ 
     title, 
@@ -348,12 +403,21 @@ export default function ResumeFormScreen() {
             {showRecommendations && (
               <ThemedView style={[styles.section, { backgroundColor: '#f7f7f7', borderRadius: 8, marginBottom: 24 }]}> 
                 <ThemedText style={[styles.sectionTitle, { marginBottom: 8 }]}>Recommended Templates</ThemedText>
-                {templateRecommendations.map((rec, idx) => {
+                {templateRecommendations.map((rec) => {
                   const template = resumeTemplates.find(t => t.id === rec.id);
                   return template ? (
                     <View key={template.id} style={{ marginBottom: 16, borderWidth: 1, borderColor: selectedTemplateId === template.id ? '#007AFF' : '#ddd', borderRadius: 6, padding: 12, backgroundColor: selectedTemplateId === template.id ? '#e6f0ff' : '#fff' }}>
                       <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{template.name}</Text>
                       <Text style={{ color: '#555', marginBottom: 4 }}>{template.description}</Text>
+                      <Text style={{ color: '#333', marginBottom: 4 }}>
+                        Best for: {template.bestFor}
+                      </Text>
+                      <Text style={{ color: '#666', marginBottom: 8 }}>
+                        Suitable fields: {template.jobFields.join(', ')}
+                      </Text>
+                      {template.tips.slice(0, 2).map((tip) => (
+                        <Text key={tip} style={{ color: '#555', marginBottom: 2 }}>• {tip}</Text>
+                      ))}
                       <Text style={{ fontStyle: 'italic', color: '#007AFF', marginBottom: 8 }}>{rec.reason}</Text>
                       <TouchableOpacity
                         style={{ backgroundColor: selectedTemplateId === template.id ? '#007AFF' : '#eee', padding: 8, borderRadius: 4 }}
@@ -371,7 +435,7 @@ export default function ResumeFormScreen() {
                   style={{ marginTop: 8, alignSelf: 'center' }}
                   onPress={() => setShowRecommendations(false)}
                 >
-                  <Text style={{ color: '#007AFF', textDecorationLine: 'underline' }}>Browse all templates</Text>
+                  <Text style={{ color: '#007AFF', textDecorationLine: 'underline' }}>Back to form</Text>
                 </TouchableOpacity>
 
                 {/* Resume Button */}
@@ -395,72 +459,96 @@ export default function ResumeFormScreen() {
             <ThemedText style={styles.sectionTitle}>Personal Information</ThemedText>
             
             <View style={styles.row}>
-              <InputField
+              <ResumeInputField
                 placeholder="First Name"
                 value={personalInfo.firstName}
                 onChangeText={(value: string) => updatePersonalInfo('firstName', value)}
+                textColor={textColor}
                 containerStyle={[styles.inputContainer, styles.halfInput]}
               />
-              <InputField
+              <ResumeInputField
                 placeholder="Last Name"
                 value={personalInfo.lastName}
                 onChangeText={(value: string) => updatePersonalInfo('lastName', value)}
+                textColor={textColor}
                 containerStyle={[styles.inputContainer, styles.halfInput]}
               />
             </View>
 
-            <InputField
+            <ResumeInputField
               placeholder="Email Address"
               value={personalInfo.email}
               onChangeText={(value: string) => updatePersonalInfo('email', value)}
+              textColor={textColor}
               containerStyle={styles.inputContainer}
               keyboardType="email-address"
             />
 
-            <InputField
+            <ResumeInputField
               placeholder="Phone Number"
               value={personalInfo.phone}
               onChangeText={(value: string) => updatePersonalInfo('phone', value)}
+              textColor={textColor}
               containerStyle={styles.inputContainer}
               keyboardType="phone-pad"
             />
 
-            <InputField
+            <ResumeInputField
               placeholder="Street Address"
               value={personalInfo.address}
               onChangeText={(value: string) => updatePersonalInfo('address', value)}
+              textColor={textColor}
               containerStyle={styles.inputContainer}
             />
 
             <View style={styles.row}>
-              <InputField
+              <ResumeInputField
                 placeholder="City"
                 value={personalInfo.city}
                 onChangeText={(value: string) => updatePersonalInfo('city', value)}
+                textColor={textColor}
                 containerStyle={[styles.inputContainer, styles.flexInput]}
               />
-              <InputField
+              <ResumeInputField
                 placeholder="State"
                 value={personalInfo.state}
                 onChangeText={(value: string) => updatePersonalInfo('state', value)}
+                textColor={textColor}
                 containerStyle={[styles.inputContainer, styles.quarterInput]}
               />
-              <InputField
+              <ResumeInputField
                 placeholder="ZIP"
                 value={personalInfo.zipCode}
                 onChangeText={(value: string) => updatePersonalInfo('zipCode', value)}
+                textColor={textColor}
                 containerStyle={[styles.inputContainer, styles.quarterInput]}
               />
             </View>
+          </ThemedView>
+
+          {/* Target Role Section */}
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Target Role</ThemedText>
+            <ResumeInputField
+              placeholder="Ex: Frontend Developer, HR Assistant, Marketing Intern"
+              value={targetRole}
+              onChangeText={(value: string) => setTargetRole(value)}
+              textColor={textColor}
+              containerStyle={styles.inputContainer}
+            />
+            <ThemedText style={{ color: '#666', fontSize: 13 }}>
+              Tip: Be specific so AI can tailor your resume better.
+            </ThemedText>
           </ThemedView>
           
           {/* Summary Section */}
           <ThemedView style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Professional Summary</ThemedText>
-            <InputField
+            <ResumeInputField
               placeholder="Write a brief summary of your professional background and career objectives..."
               value={professionalSummary}
               onChangeText={(value: string) => setProfessionalSummary(value)}
+              textColor={textColor}
               containerStyle={styles.inputContainer}
               multiline
               numberOfLines={4}
@@ -500,46 +588,52 @@ export default function ResumeFormScreen() {
                       )}
                     </View>
 
-                    <InputField
+                    <ResumeInputField
                       placeholder="Job Title"
                       value={experience.jobTitle}
                       onChangeText={(value: string) => updateWorkExperience(index, 'jobTitle', value)}
+                      textColor={textColor}
                       containerStyle={styles.inputContainer}
                     />
 
-                    <InputField
+                    <ResumeInputField
                       placeholder="Company Name"
                       value={experience.company}
                       onChangeText={(value: string) => updateWorkExperience(index, 'company', value)}
+                      textColor={textColor}
                       containerStyle={styles.inputContainer}
                     />
 
-                    <InputField
+                    <ResumeInputField
                       placeholder="Location (City, State)"
                       value={experience.location}
                       onChangeText={(value: string) => updateWorkExperience(index, 'location', value)}
+                      textColor={textColor}
                       containerStyle={styles.inputContainer}
                     />
 
                     <View style={styles.row}>
-                      <InputField
+                      <ResumeInputField
                         placeholder="Start Date (MM/YYYY)"
                         value={experience.startDate}
                         onChangeText={(value: string) => updateWorkExperience(index, 'startDate', value)}
+                        textColor={textColor}
                         containerStyle={[styles.inputContainer, styles.halfInput]}
                       />
-                      <InputField
+                      <ResumeInputField
                         placeholder="End Date (MM/YYYY)"
                         value={experience.endDate}
                         onChangeText={(value: string) => updateWorkExperience(index, 'endDate', value)}
+                        textColor={textColor}
                         containerStyle={[styles.inputContainer, styles.halfInput]}
                       />
                     </View>
 
-                    <InputField
+                    <ResumeInputField
                       placeholder="Job Description and Achievements..."
                       value={experience.description}
                       onChangeText={(value: string) => updateWorkExperience(index, 'description', value)}
+                      textColor={textColor}
                       containerStyle={styles.inputContainer}
                       multiline
                       numberOfLines={3}
@@ -573,41 +667,123 @@ export default function ResumeFormScreen() {
                   )}
                 </View>
 
-                <InputField
+                <ResumeInputField
                   placeholder="Degree (e.g., Bachelor of Science in Computer Science)"
                   value={edu.degree}
                   onChangeText={(value: string) => updateEducation(index, 'degree', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                 />
 
-                <InputField
+                <ResumeInputField
                   placeholder="Institution Name"
                   value={edu.institution}
                   onChangeText={(value: string) => updateEducation(index, 'institution', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                 />
 
-                <InputField
+                <ResumeInputField
                   placeholder="Location (City, State)"
                   value={edu.location}
                   onChangeText={(value: string) => updateEducation(index, 'location', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                 />
 
                 <View style={styles.row}>
-                  <InputField
+                  <ResumeInputField
                     placeholder="Graduation Date (MM/YYYY)"
                     value={edu.graduationDate}
                     onChangeText={(value: string) => updateEducation(index, 'graduationDate', value)}
+                    textColor={textColor}
                     containerStyle={[styles.inputContainer, styles.halfInput]}
                   />
-                  <InputField
+                  <ResumeInputField
                     placeholder="GPA (Optional)"
                     value={edu.gpa}
                     onChangeText={(value: string) => updateEducation(index, 'gpa', value)}
+                    textColor={textColor}
                     containerStyle={[styles.inputContainer, styles.halfInput]}
                   />
                 </View>
+              </View>
+            ))}
+          </ThemedView>
+
+          {/* Skills */}
+          <ThemedView style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText style={styles.sectionTitle}>Projects</ThemedText>
+              <TouchableOpacity onPress={addProject} style={styles.addButton}>
+                <ThemedText style={styles.addButtonText}>+ Add</ThemedText>
+              </TouchableOpacity>
+            </View>
+
+            {projects.map((project, index) => (
+              <View key={index} style={styles.experienceItem}>
+                <View style={styles.itemHeader}>
+                  <ThemedText style={styles.itemNumber}>Project {index + 1}</ThemedText>
+                  {projects.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => removeProject(index)}
+                      style={styles.removeButton}
+                    >
+                      <ThemedText style={styles.removeButtonText}>Remove</ThemedText>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <ResumeInputField
+                  placeholder="Project Name"
+                  value={project.name}
+                  onChangeText={(value: string) => updateProject(index, 'name', value)}
+                  textColor={textColor}
+                  containerStyle={styles.inputContainer}
+                />
+
+                <ResumeInputField
+                  placeholder="Role in Project"
+                  value={project.role}
+                  onChangeText={(value: string) => updateProject(index, 'role', value)}
+                  textColor={textColor}
+                  containerStyle={styles.inputContainer}
+                />
+
+                <ResumeInputField
+                  placeholder="Tech Stack / Tools"
+                  value={project.techStack}
+                  onChangeText={(value: string) => updateProject(index, 'techStack', value)}
+                  textColor={textColor}
+                  containerStyle={styles.inputContainer}
+                />
+
+                <View style={styles.row}>
+                  <ResumeInputField
+                    placeholder="Date / Duration"
+                    value={project.date}
+                    onChangeText={(value: string) => updateProject(index, 'date', value)}
+                    textColor={textColor}
+                    containerStyle={[styles.inputContainer, styles.halfInput]}
+                  />
+                  <ResumeInputField
+                    placeholder="Project Link (Optional)"
+                    value={project.link}
+                    onChangeText={(value: string) => updateProject(index, 'link', value)}
+                    textColor={textColor}
+                    containerStyle={[styles.inputContainer, styles.halfInput]}
+                  />
+                </View>
+
+                <ResumeInputField
+                  placeholder="What you built and impact/results..."
+                  value={project.description}
+                  onChangeText={(value: string) => updateProject(index, 'description', value)}
+                  textColor={textColor}
+                  containerStyle={styles.inputContainer}
+                  multiline
+                  numberOfLines={3}
+                />
               </View>
             ))}
           </ThemedView>
@@ -623,10 +799,11 @@ export default function ResumeFormScreen() {
 
             {skills.map((skill, index) => (
               <View key={index} style={styles.skillItem}>
-                <InputField
+                <ResumeInputField
                   placeholder={`Skill ${index + 1}`}
                   value={skill}
                   onChangeText={(value: string) => updateSkill(index, value)}
+                  textColor={textColor}
                   containerStyle={[styles.inputContainer, styles.flexInput]}
                 />
                 {skills.length > 1 && (
@@ -664,31 +841,35 @@ export default function ResumeFormScreen() {
                   )}
                 </View>
 
-                <InputField
+                <ResumeInputField
                   placeholder="Achievement/Certification Title"
                   value={achievement.title}
                   onChangeText={(value: string) => updateAchievement(index, 'title', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                 />
 
-                <InputField
+                <ResumeInputField
                   placeholder="Issuing Organization"
                   value={achievement.issuer}
                   onChangeText={(value: string) => updateAchievement(index, 'issuer', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                 />
 
-                <InputField
+                <ResumeInputField
                   placeholder="Date Earned (MM/YYYY)"
                   value={achievement.date}
                   onChangeText={(value: string) => updateAchievement(index, 'date', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                 />
 
-                <InputField
+                <ResumeInputField
                   placeholder="Description (optional)"
                   value={achievement.description}
                   onChangeText={(value: string) => updateAchievement(index, 'description', value)}
+                  textColor={textColor}
                   containerStyle={styles.inputContainer}
                   multiline
                   numberOfLines={2}

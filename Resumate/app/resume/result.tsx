@@ -21,7 +21,7 @@ export default function ResumeResultScreen() {
   const { generatedResumeData, selectedTemplateId } = useResumeContext();
   const [saving, setSaving] = useState(false);
 
-  const templateId = selectedTemplateId ?? 'classic';
+  const templateId = selectedTemplateId ?? 'chronological';
 
   const handleSavePDF = async () => {
     if (!generatedResumeData) return;
