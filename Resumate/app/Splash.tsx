@@ -5,7 +5,7 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 
 const RED = '#c40000';
 
@@ -22,10 +22,11 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
-      <Image 
-        source={require('../assets/images/ResuMate Logo.png')} 
+
+      <Image
+        source={require('../assets/images/ResuMate Logo.png')}
         style={styles.logo}
         resizeMode="contain"
       />

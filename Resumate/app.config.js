@@ -6,7 +6,7 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "resumate",
-    userInterfaceStyle: "automatic",
+    userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {
       image: "./assets/images/splash-icon.png",

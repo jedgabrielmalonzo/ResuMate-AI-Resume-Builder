@@ -12,17 +12,22 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { useResumeContext } from '@/context/ResumeContext';
+import { useAuth } from '@/context/AuthContext';
 import ResumeDocument from '@/components/resume/ResumeDocument';
 import { exportResumeToPDF } from '@/utils/pdfGenerator';
+import { resumeService } from '@/services/resumeService';
+import { useEffect } from 'react';
 
 const RED = '#c40000';
 
 export default function ResumeResultScreen() {
   const router = useRouter();
   const { generatedResumeData, selectedTemplateId } = useResumeContext();
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
 
   const templateId = selectedTemplateId ?? 'chronological';
+
 
   const handleSavePDF = async () => {
     if (!generatedResumeData) return;

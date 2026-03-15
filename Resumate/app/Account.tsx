@@ -6,49 +6,75 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useResumeContext } from '@/context/ResumeContext';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { Stack } from 'expo-router';
+
+import { resumeService, SavedResume } from '@/services/resumeService';
+import { useEffect, useState } from 'react';
 
 const RED = '#c40000';
 
-// Sample data - replace with actual user data later
-const userData = {
-  name: 'BUSET KA',
-  userId: 'RES-00123',
-  email: 'john.doe@email.com',
-};
-
-const previousResumes = [
-  {
-    id: '1',
-    title: 'Software Engineer Resume',
-    date: '2024-02-10',
-    status: 'Completed',
-  },
-  {
-    id: '2',
-    title: 'Frontend Developer Resume', 
-    date: '2024-01-15',
-    status: 'Completed',
-  },
-  {
-    id: '3',
-    title: 'Full Stack Developer Resume',
-    date: '2023-12-20',
-    status: 'Draft',
-  },
-];
-
 export default function Account() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const [resumes, setResumes] = useState<SavedResume[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleViewResume = (resumeId: string) => {
-    // Navigate to resume preview
-    router.push(`/resume/preview?id=${resumeId}`);
+  useEffect(() => {
+    const fetchResumes = async () => {
+      if (user?.uid) {
+        try {
+          const data = await resumeService.getUserResumes(user.uid);
+          setResumes(data);
+        } catch (error) {
+          console.error('Error fetching resumes:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+    fetchResumes();
+  }, [user?.uid]);
+
+  const { setGeneratedResumeData, setSelectedTemplateId } = useResumeContext();
+
+  const handleViewResume = (resume: SavedResume) => {
+    // Set the context with the selected resume data
+    setGeneratedResumeData(resume.resumeData);
+    setSelectedTemplateId(resume.templateId);
+    // Navigate to the result page (which shows the preview/PDF export)
+    router.push('/resume/result');
+  };
+
+  const handleDeleteResume = async (resumeId: string) => {
+    Alert.alert(
+      'Delete Resume',
+      'Are you sure you want to delete this resume?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await resumeService.deleteResume(resumeId);
+              setResumes(prev => prev.filter(r => r.id !== resumeId));
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete resume.');
+            }
+          }
+        },
+      ]
+    );
   };
 
   const handleEditProfile = () => {
@@ -75,53 +101,55 @@ export default function Account() {
   };
 
   const handleSettings = () => {
-    // Navigate to settings screen
     router.push('/settings');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={RED} />
-      
+      <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar barStyle="dark-content" />
+
+      <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+        <ScreenHeader title="Account" backLabel="Home" />
+      </View>
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Text style={styles.avatarText}>
-              {userData.name.split(' ').map(n => n[0]).join('')}
+              {user?.displayName ? user.displayName.split(' ').map(n => n[0]).join('') : user?.email?.[0]?.toUpperCase() || 'U'}
             </Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>{userData.name}</Text>
-            <Text style={styles.userIdText} numberOfLines={1}>ID: {userData.userId}</Text>
-            <Text style={styles.userEmail} numberOfLines={1}>{userData.email}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{user?.displayName || 'User'}</Text>
+            <Text style={styles.userIdText} numberOfLines={1}>ID: {user?.uid?.substring(0, 8).toUpperCase()}</Text>
+            <Text style={styles.userEmail} numberOfLines={1}>{user?.email}</Text>
           </View>
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
         {/* Account Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{previousResumes.length}</Text>
+            <Text style={styles.statNumber}>{resumes.length}</Text>
             <Text style={styles.statLabel}>Resumes</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {previousResumes.filter(r => r.status === 'Completed').length}
+              {resumes.length}
             </Text>
             <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {previousResumes.filter(r => r.status === 'Draft').length}
-            </Text>
+            <Text style={styles.statNumber}>0</Text>
             <Text style={styles.statLabel}>Drafts</Text>
           </View>
         </View>
@@ -129,52 +157,60 @@ export default function Account() {
         {/* Previous Resumes Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Previous Resumes</Text>
-          
-          {previousResumes.map((resume) => (
-            <TouchableOpacity
-              key={resume.id}
-              style={styles.resumeItem}
-              onPress={() => handleViewResume(resume.id)}
-            >
-              <View style={styles.resumeIcon}>
-                <Text style={styles.resumeIconText}>📄</Text>
-              </View>
-              <View style={styles.resumeDetails}>
-                <Text style={styles.resumeTitle} numberOfLines={2}>{resume.title}</Text>
-                <Text style={styles.resumeDate}>{resume.date}</Text>
-                <View style={[
-                  styles.statusBadge,
-                  resume.status === 'Completed' ? styles.completedBadge : styles.draftBadge
-                ]}>
-                  <Text style={[
-                    styles.statusText,
-                    resume.status === 'Completed' ? styles.completedText : styles.draftText
-                  ]}>
-                    {resume.status}
-                  </Text>
+
+          {loading ? (
+            <ActivityIndicator size="small" color={RED} style={{ marginTop: 20 }} />
+          ) : resumes.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No resumes found. Create one to get started!</Text>
+            </View>
+          ) : (
+            resumes.map((resume) => (
+              <TouchableOpacity
+                key={resume.id}
+                style={styles.resumeItem}
+                onPress={() => handleViewResume(resume)}
+              >
+                <View style={styles.resumeIcon}>
+                  <Text style={styles.resumeIconText}>📄</Text>
                 </View>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.resumeDetails}>
+                  <Text style={styles.resumeTitle} numberOfLines={2}>{resume.title}</Text>
+                  <Text style={styles.resumeDate}>
+                    {resume.createdAt?.toDate ? resume.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                  </Text>
+                  <View style={[styles.statusBadge, styles.completedBadge]}>
+                    <Text style={[styles.statusText, styles.completedText]}>Completed</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleDeleteResume(resume.id)}
+                  style={styles.deleteButton}
+                >
+                  <Text style={styles.deleteIcon}>🗑️</Text>
+                </TouchableOpacity>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Account Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Settings</Text>
-          
+
           <TouchableOpacity style={styles.actionItem}>
             <Text style={styles.actionIcon}>👤</Text>
             <Text style={styles.actionText}>Edit Profile</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.actionItem}>
             <Text style={styles.actionIcon}>🔔</Text>
             <Text style={styles.actionText}>Notifications</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.actionItem}>
             <Text style={styles.actionIcon}>❓</Text>
             <Text style={styles.actionText}>Help & Support</Text>
@@ -242,6 +278,9 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
+  },
+  quarterInput: {
+    flex: 0.7,
   },
   userName: {
     fontSize: 20,
@@ -405,6 +444,26 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 15,
     fontWeight: '600',
+  },
+  emptyContainer: {
+    padding: 30,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#6c757d',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  deleteButton: {
+    padding: 10,
+    marginRight: 5,
+  },
+  deleteIcon: {
+    fontSize: 16,
+    opacity: 0.6,
   },
   bottomNavigation: {
     position: 'absolute',

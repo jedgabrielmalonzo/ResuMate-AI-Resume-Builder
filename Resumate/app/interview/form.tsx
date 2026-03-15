@@ -9,9 +9,11 @@ import {
   TextInput,
   TouchableOpacity
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import { InterviewAI, JobDetails } from '@/services/interviewAI';
 import BackButton from '@/components/ui/BackButton';
+import ScreenHeader from '@/components/ui/ScreenHeader';
 
 const RED = '#c40000';
 
@@ -39,7 +41,7 @@ export default function InterviewFormScreen() {
       };
 
       const questions = await InterviewAI.generateQuestions(jobDetails);
-      
+
       // Navigate to questions screen with generated questions
       router.push({
         pathname: '/interview/questions',
@@ -51,26 +53,28 @@ export default function InterviewFormScreen() {
 
     } catch (error) {
       Alert.alert(
-        'AI Service Issue', 
+        'AI Service Issue',
         'Using fallback questions for now. The AI feature will be improved soon!',
-        [{ text: 'Continue', onPress: () => {
-          // Use fallback questions
-          const fallbackQuestions = InterviewAI.getFallbackQuestions({
-            jobTitle: formData.jobTitle,
-            companyName: formData.companyName
-          });
-          router.push({
-            pathname: '/interview/questions', 
-            params: {
-              questions: JSON.stringify(fallbackQuestions),
-              jobDetails: JSON.stringify({
-                jobTitle: formData.jobTitle,
-                companyName: formData.companyName,
-                jobDescription: formData.jobDescription
-              })
-            }
-          });
-        }}]
+        [{
+          text: 'Continue', onPress: () => {
+            // Use fallback questions
+            const fallbackQuestions = InterviewAI.getFallbackQuestions({
+              jobTitle: formData.jobTitle,
+              companyName: formData.companyName
+            });
+            router.push({
+              pathname: '/interview/questions',
+              params: {
+                questions: JSON.stringify(fallbackQuestions),
+                jobDetails: JSON.stringify({
+                  jobTitle: formData.jobTitle,
+                  companyName: formData.companyName,
+                  jobDescription: formData.jobDescription
+                })
+              }
+            });
+          }
+        }]
       );
     } finally {
       setLoading(false);
@@ -80,63 +84,64 @@ export default function InterviewFormScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <BackButton />
-        <Text style={styles.title}>Interview Prep</Text>
-        
-        <View style={styles.infoCard}>
-          <Text style={styles.infoText}>
-            Fill in the target job details, and our AI will simulate real interview questions tailored to that specific company's culture and role requirements.
-          </Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <ScreenHeader title="Interview Prep" />
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Job Title</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Senior Software Engineer"
-            value={formData.jobTitle}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, jobTitle: text }))}
-          />
-
-          <Text style={styles.label}>Company Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Alogria"
-            value={formData.companyName}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, companyName: text }))}
-          />
-
-          <Text style={styles.label}>Job Description (Optional)</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Paste the job description here for better accuracy..."
-            value={formData.jobDescription}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, jobDescription: text }))}
-            multiline
-            textAlignVertical="top"
-          />
-
-          <TouchableOpacity
-            style={[styles.generateButton, loading && styles.generateButtonDisabled]}
-            onPress={handleGenerateQuestions}
-            disabled={loading}
-          >
-            <Text style={styles.generateButtonText}>
-              {loading ? "Generating..." : "Generate mock questions"}
-            </Text>
-          </TouchableOpacity>
-
-          {loading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={RED} />
-              <Text style={styles.loadingText}>AI is preparing your questions...</Text>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoText}>
+                Fill in the target job details, and our AI will simulate real interview questions tailored to that specific company's culture and role requirements.
+              </Text>
             </View>
-          )}
-        </View>
-      </View>
-    </ScrollView>
+
+            <View style={styles.form}>
+              <Text style={styles.label}>Job Title</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: Senior Software Engineer"
+                value={formData.jobTitle}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, jobTitle: text }))}
+              />
+
+              <Text style={styles.label}>Company Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: Alogria"
+                value={formData.companyName}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, companyName: text }))}
+              />
+
+              <Text style={styles.label}>Job Description (Optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Paste the job description here for better accuracy..."
+                value={formData.jobDescription}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, jobDescription: text }))}
+                multiline
+                textAlignVertical="top"
+              />
+
+              <TouchableOpacity
+                style={[styles.generateButton, loading && styles.generateButtonDisabled]}
+                onPress={handleGenerateQuestions}
+                disabled={loading}
+              >
+                <Text style={styles.generateButtonText}>
+                  {loading ? "Generating..." : "Generate mock questions"}
+                </Text>
+              </TouchableOpacity>
+
+              {loading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={RED} />
+                  <Text style={styles.loadingText}>AI is preparing your questions...</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </>
   );
 }

@@ -183,89 +183,15 @@ Instructions:
   return ensureTargetRoleInResume(parsed, userData?.targetRole, template);
 }
 
-export async function getTemplateRecommendations(
-  userData: any,
-  jobField: string,
-  templates: ResumeTemplate[]
-): Promise<TemplateRecommendation[]> {
-  const workExperience = Array.isArray(userData?.workExperience)
-    ? userData.workExperience
-    : [];
-  const education = Array.isArray(userData?.education) ? userData.education : [];
-  const skills = Array.isArray(userData?.skills)
-    ? userData.skills.filter((s: string) => typeof s === 'string')
-    : [];
-  const achievements = Array.isArray(userData?.achievements)
-    ? userData.achievements
-    : [];
+export async function getTemplateRecommendations(userData: any, jobField: string, templates: ResumeTemplate[]) {
+  // prompt for Gemini
+  const templateList = templates.map(t => `ID: ${t.id}, Name: ${t.name}, Description: ${t.description}`).join('\n');
+  const prompt = `Given the following user information: ${JSON.stringify(userData)}\nTarget job/field: ${jobField}\nHere are available resume templates:\n${templateList}\nRecommend the 3 most suitable template IDs for this user and explain your choices.`;
 
-  const experienceCompleteness = workExperience.reduce((total: number, item: any) => {
-    if (!item || typeof item !== 'object') return total;
-    return (
-      total +
-      countFilled([
-        String(item.jobTitle ?? ''),
-        String(item.company ?? ''),
-        String(item.startDate ?? ''),
-        String(item.endDate ?? ''),
-        String(item.description ?? ''),
-      ])
-    );
-  }, 0);
-
-  const hasStrongExperience = workExperience.length >= 2 && experienceCompleteness >= 8;
-  const hasLimitedExperience = workExperience.length <= 1 || experienceCompleteness <= 3;
-  const hasStrongSkills = countFilled(skills) >= 4;
-  const hasStrongProjectsOrAchievements = achievements.length >= 2;
-  const hasEducationFocus = education.length > 0;
-  const field = jobField.toLowerCase();
-  const wantsMini = /network|fair|event|quick|short|intro|pitch/.test(field);
-  const studentSignal = /student|intern|entry|junior|graduate|fresh/.test(field);
-
-  const scored = templates.map((template) => {
-    let score = 0;
-
-    switch (template.formatType) {
-      case 'chronological':
-        if (hasStrongExperience) score += 4;
-        if (hasLimitedExperience) score -= 1;
-        if (/operations|finance|health|admin|corporate/.test(field)) score += 2;
-        break;
-      case 'functional':
-        if (hasStrongSkills) score += 3;
-        if (hasStrongProjectsOrAchievements) score += 2;
-        if (hasLimitedExperience) score += 2;
-        if (/creative|transition|freelance|marketing|design/.test(field)) score += 2;
-        break;
-      case 'hybrid':
-        if (hasStrongExperience) score += 3;
-        if (hasStrongSkills) score += 2;
-        if (/technology|tech|product|management|engineer|analysis/.test(field)) score += 2;
-        break;
-      case 'mini':
-        if (wantsMini) score += 6;
-        if (/sales|startup|recruiter/.test(field)) score += 2;
-        break;
-      case 'student-entry':
-        if (studentSignal) score += 4;
-        if (hasEducationFocus) score += 2;
-        if (hasLimitedExperience) score += 2;
-        break;
-    }
-
-    return {
-      template,
-      score,
-    };
-  });
-
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map(({ template }) => ({
-      id: template.id,
-      reason: `${getTemplateBaseReason(template)} Suitable fields: ${template.jobFields
-        .slice(0, 3)
-        .join(', ')}.`,
-    }));
+  // Example response format
+  return [
+    { id: 'classic', reason: 'Best for general entry-level jobs.' },
+    { id: 'modern', reason: 'Highlights skills for recent graduates.' },
+    { id: 'it', reason: 'Tailored for IT/CS graduates.' },
+  ];
 }

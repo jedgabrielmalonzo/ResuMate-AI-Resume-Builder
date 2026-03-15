@@ -16,13 +16,13 @@ const RED = '#c40000';
 
 type UserRole = 'student' | 'worker';
 
-function RoleButton({ 
-  label, 
-  active, 
-  onPress 
-}: { 
-  label: string; 
-  active: boolean; 
+function RoleButton({
+  label,
+  active,
+  onPress
+}: {
+  label: string;
+  active: boolean;
   onPress: () => void;
 }) {
   return (
@@ -122,6 +122,7 @@ export default function SignupScreen() {
         { text: 'OK', onPress: () => router.replace('/auth/login') },
       ]);
     } catch (error: any) {
+      console.error('🔥 Signup Error:', error);
       let message = 'Unable to create account. Please try again.';
 
       if (error?.code === 'auth/email-already-in-use') {
@@ -212,8 +213,8 @@ export default function SignupScreen() {
           editable={!loading}
         />
 
-        <TouchableOpacity 
-          style={[styles.mainButton, loading && styles.mainButtonDisabled]} 
+        <TouchableOpacity
+          style={[styles.mainButton, loading && styles.mainButtonDisabled]}
           onPress={handleSignup}
           disabled={loading}
         >
@@ -222,7 +223,7 @@ export default function SignupScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
           disabled={loading}
         >

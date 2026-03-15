@@ -7,6 +7,7 @@ import {
   Animated,
   StatusBar,
   Image,
+  Alert,
 } from "react-native";
 import { useRouter } from 'expo-router';
 
@@ -66,11 +67,11 @@ export default function Home() {
   }, []);
 
   const handleBuildResume = () => {
-    router.push('/resume/form'); 
+    router.push('/resume/form');
   };
 
   const handleInterviewPrep = () => {
-    router.push('/interview/form'); 
+    router.push('/interview/form');
   };
 
   const handleHome = () => {
@@ -79,12 +80,11 @@ export default function Home() {
 
   const handleAccount = () => {
     // Navigate to account screen
-    router.push('/Account'); 
+    router.push('/Account');
   };
 
   const handleSettings = () => {
-    // Navigate to settings screen
-    router.push('/settings'); 
+    router.push('/settings');
   };
 
   return (
@@ -110,8 +110,8 @@ export default function Home() {
         ]}
       >
         <View style={styles.logoBox}>
-          <Image 
-            source={require('../assets/images/newlogo.png')} 
+          <Image
+            source={require('../assets/images/newlogo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -126,7 +126,7 @@ export default function Home() {
 
         {/* Action Buttons - Horizontal Layout */}
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={handleBuildResume}
           >
@@ -134,7 +134,7 @@ export default function Home() {
             <Text style={styles.actionButtonText}>Build my{"\n"}resume</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={handleInterviewPrep}
           >
