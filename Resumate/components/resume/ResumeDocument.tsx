@@ -8,13 +8,15 @@ interface Props {
 }
 
 const TEMPLATE_STYLES: Record<string, { accent: string; headerText: string }> = {
-  classic: { accent: '#2c3e50', headerText: '#ffffff' },
-  modern: { accent: '#c40000', headerText: '#ffffff' },
-  it: { accent: '#1565c0', headerText: '#ffffff' },
+  chronological: { accent: '#2c3e50', headerText: '#ffffff' },
+  functional: { accent: '#6a1b9a', headerText: '#ffffff' },
+  hybrid: { accent: '#1565c0', headerText: '#ffffff' },
+  mini: { accent: '#ef6c00', headerText: '#ffffff' },
+  'student-entry': { accent: '#00897b', headerText: '#ffffff' },
 };
 
 export default function ResumeDocument({ data, templateId }: Props) {
-  const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classic;
+  const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.chronological;
 
   return (
     <View style={styles.paper}>
@@ -29,8 +31,18 @@ export default function ResumeDocument({ data, templateId }: Props) {
             {section.content.split('\n').map((line, i) => {
               if (!line.trim()) return null;
               const isBullet = line.trimStart().startsWith('•');
+              const isTargetRoleLine = /^(Desired Position|Target Role)\s*:/i.test(
+                line.trim()
+              );
               return (
-                <Text key={i} style={[styles.contentLine, isBullet && styles.bullet]}>
+                <Text
+                  key={i}
+                  style={[
+                    styles.contentLine,
+                    isBullet && styles.bullet,
+                    isTargetRoleLine && styles.targetRoleLine,
+                  ]}
+                >
                   {line}
                 </Text>
               );
@@ -80,5 +92,13 @@ const styles = StyleSheet.create({
   },
   bullet: {
     paddingLeft: 8,
+  },
+  targetRoleLine: {
+    fontWeight: '700',
+    fontSize: 14,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    color: '#1f2937',
+    marginBottom: 4,
   },
 });

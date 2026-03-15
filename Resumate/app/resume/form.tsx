@@ -19,7 +19,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
-import { Colors } from '../../constants/theme';
 import { useThemeColor } from '../../hooks/use-theme-color';
 import BackButton from '@/components/ui/BackButton';
 import ScreenHeader from '@/components/ui/ScreenHeader';
@@ -61,86 +60,61 @@ interface Achievement {
   description: string;
 }
 
-const InputField = ({
-  placeholder,
-  value,
-  onChangeText,
-  multiline = false,
-  numberOfLines = 1,
-  keyboardType = 'default',
-  containerStyle = {},
-  textColor = '#333',
-  ...props
-}: {
+interface Project {
+  name: string;
+  role: string;
+  techStack: string;
+  date: string;
+  description: string;
+  link: string;
+}
+
+type ResumeInputFieldProps = {
   placeholder: string;
   value: string;
   onChangeText: (text: string) => void;
+  textColor: string;
   multiline?: boolean;
   numberOfLines?: number;
   keyboardType?: 'default' | 'email-address' | 'phone-pad';
   containerStyle?: any;
-  textColor?: string;
-  [key: string]: any;
-}) => (
-  <View style={[styles.inputContainer, containerStyle]}>
-    <TextInput
-      placeholder={placeholder}
-      value={value}
-      onChangeText={onChangeText}
-      style={[
-        styles.textInput,
-        { color: textColor },
-        multiline && styles.multilineInput
-      ]}
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      keyboardType={keyboardType}
-      placeholderTextColor="#999"
-      {...props}
-    />
-  </View>
-);
+};
 
-const PrimaryButton = ({
-  title,
-  onPress,
-  style = {}
-}: {
-  title: string;
-  onPress: () => void;
-  style?: any;
-}) => (
-  <TouchableOpacity
-    style={[styles.primaryButton, style]}
-    onPress={onPress}
-  >
-    <Text style={styles.primaryButtonText}>{title}</Text>
-  </TouchableOpacity>
-);
-
-const Checkbox = ({
-  checked,
-  onPress,
-  label
-}: {
-  checked: boolean;
-  onPress: () => void;
-  label: string;
-}) => (
-  <TouchableOpacity style={styles.checkboxContainer} onPress={onPress}>
-    <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-      {checked && <Text style={styles.checkboxText}>✓</Text>}
+function ResumeInputField({
+  placeholder,
+  value,
+  onChangeText,
+  textColor,
+  multiline = false,
+  numberOfLines = 1,
+  keyboardType = 'default',
+  containerStyle = {},
+  ...props
+}: ResumeInputFieldProps) {
+  return (
+    <View style={[styles.inputContainer, containerStyle]}>
+      <TextInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        style={[
+          styles.textInput,
+          { color: textColor },
+          multiline && styles.multilineInput
+        ]}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        keyboardType={keyboardType}
+        placeholderTextColor="#999"
+        {...props}
+      />
     </View>
-    <Text style={styles.checkboxLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+  );
+}
 
 export default function ResumeFormScreen() {
   const textColor = useThemeColor({}, 'text');
-  const tintColor = useThemeColor({}, 'tint');
-  const backgroundColor = useThemeColor({}, 'background');
-  const { setGeneratedResumeData } = useResumeContext();
-  const { user } = useAuth();
+  const { setGeneratedResumeData, setSelectedTemplateId: setContextSelectedTemplateId } = useResumeContext();
   const router = useRouter();
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
@@ -178,6 +152,17 @@ export default function ResumeFormScreen() {
   ]);
 
   const [skills, setSkills] = useState<string[]>(['']);
+
+  const [projects, setProjects] = useState<Project[]>([
+    {
+      name: '',
+      role: '',
+      techStack: '',
+      date: '',
+      description: '',
+      link: '',
+    },
+  ]);
 
   const [achievements, setAchievements] = useState<Achievement[]>([
     {
@@ -264,6 +249,32 @@ export default function ResumeFormScreen() {
     }
   };
 
+  const updateProject = (index: number, field: keyof Project, value: string) => {
+    const updated = [...projects];
+    updated[index] = { ...updated[index], [field]: value };
+    setProjects(updated);
+  };
+
+  const addProject = () => {
+    setProjects([
+      ...projects,
+      {
+        name: '',
+        role: '',
+        techStack: '',
+        date: '',
+        description: '',
+        link: '',
+      },
+    ]);
+  };
+
+  const removeProject = (index: number) => {
+    if (projects.length > 1) {
+      setProjects(projects.filter((_, i) => i !== index));
+    }
+  };
+
   const updateAchievement = (index: number, field: keyof Achievement, value: string) => {
     const updated = [...achievements];
     updated[index] = { ...updated[index], [field]: value };
@@ -288,7 +299,7 @@ export default function ResumeFormScreen() {
     }
   };
 
-  const [templateRecommendations, setTemplateRecommendations] = useState<any[]>([]);
+  const [templateRecommendations, setTemplateRecommendations] = useState<Array<{ id: string; reason: string }>>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -300,9 +311,11 @@ export default function ResumeFormScreen() {
     setGenerating(true);
     const userData = {
       personalInfo,
+      targetRole,
       professionalSummary,
       workExperience,
       education,
+      projects,
       skills,
       achievements,
     };
@@ -334,13 +347,15 @@ export default function ResumeFormScreen() {
 
     const userData = {
       personalInfo,
+      targetRole,
       professionalSummary,
       workExperience,
       education,
+      projects,
       skills,
       achievements,
     };
-    const jobField = professionalSummary || '';
+    const jobField = targetRole || professionalSummary || '';
     try {
       const recommendations = await getTemplateRecommendations(userData, jobField, resumeTemplates);
       setTemplateRecommendations(recommendations);
@@ -368,12 +383,21 @@ export default function ResumeFormScreen() {
             {showRecommendations && (
               <ThemedView style={[styles.section, { backgroundColor: '#f7f7f7', borderRadius: 8, marginBottom: 24 }]}>
                 <ThemedText style={[styles.sectionTitle, { marginBottom: 8 }]}>Recommended Templates</ThemedText>
-                {templateRecommendations.map((rec, idx) => {
+                {templateRecommendations.map((rec) => {
                   const template = resumeTemplates.find(t => t.id === rec.id);
                   return template ? (
                     <View key={template.id} style={{ marginBottom: 16, borderWidth: 1, borderColor: selectedTemplateId === template.id ? '#007AFF' : '#ddd', borderRadius: 6, padding: 12, backgroundColor: selectedTemplateId === template.id ? '#e6f0ff' : '#fff' }}>
                       <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{template.name}</Text>
                       <Text style={{ color: '#555', marginBottom: 4 }}>{template.description}</Text>
+                      <Text style={{ color: '#333', marginBottom: 4 }}>
+                        Best for: {template.bestFor}
+                      </Text>
+                      <Text style={{ color: '#666', marginBottom: 8 }}>
+                        Suitable fields: {template.jobFields.join(', ')}
+                      </Text>
+                      {template.tips.slice(0, 2).map((tip) => (
+                        <Text key={tip} style={{ color: '#555', marginBottom: 2 }}>• {tip}</Text>
+                      ))}
                       <Text style={{ fontStyle: 'italic', color: '#007AFF', marginBottom: 8 }}>{rec.reason}</Text>
                       <TouchableOpacity
                         style={{ backgroundColor: selectedTemplateId === template.id ? '#007AFF' : '#eee', padding: 8, borderRadius: 4 }}
@@ -391,7 +415,7 @@ export default function ResumeFormScreen() {
                   style={{ marginTop: 8, alignSelf: 'center' }}
                   onPress={() => setShowRecommendations(false)}
                 >
-                  <Text style={{ color: '#007AFF', textDecorationLine: 'underline' }}>Browse all templates</Text>
+                  <Text style={{ color: '#007AFF', textDecorationLine: 'underline' }}>Back to form</Text>
                 </TouchableOpacity>
 
                 {/* Resume Button */}
