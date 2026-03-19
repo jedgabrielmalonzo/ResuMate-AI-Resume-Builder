@@ -45,6 +45,9 @@ module.exports = {
       typedRoutes: true
     },
     extra: {
+      eas: {
+        projectId: "4b32d1a7-ee1a-43b2-89ad-fd8c88d674e5"
+      },
       geminiApiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
       firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
       firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,

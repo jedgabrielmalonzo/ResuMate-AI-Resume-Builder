@@ -4,7 +4,9 @@ import {
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signOut 
+  signOut,
+  signInWithCredential,
+  GoogleAuthProvider 
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/services/firebaseConfig';
@@ -20,6 +22,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, role: UserRole) => Promise<void>;
+  signInWithGoogle: (credential: any) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -64,8 +67,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   };
 
+  const signInWithGoogle = async (credential: any) => {
+    const userCredential = await signInWithCredential(auth, credential);
+    const { user } = userCredential;
+
+    // Check if user exists in Firestore
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists()) {
+      // Create a default profile for new Google users
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        role: 'student', // Default role for SSO
+        createdAt: new Date().toISOString(),
+      });
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, logout }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

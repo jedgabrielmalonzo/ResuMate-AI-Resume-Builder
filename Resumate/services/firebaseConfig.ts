@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { initializeAuth, getReactNativePersistence, browserLocalPersistence, getAuth } from "firebase/auth";
+// @ts-ignore
+import { initializeAuth, getReactNativePersistence, getAuth, Auth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { Platform } from 'react-native';
 
@@ -21,7 +22,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 
 // Initialize Auth with platform-specific persistence
-let auth;
+let auth: Auth;
 if (Platform.OS === 'web') {
   // For web, use the default getAuth which includes browserLocalPersistence
   auth = getAuth(app);

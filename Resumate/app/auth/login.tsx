@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { Ionicons } from '@expo/vector-icons';
+import { useGoogleAuth } from '@/services/authService';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
 const RED = '#c40000';
 
@@ -21,7 +22,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
+  const { handleGoogleSignIn, isLoading: googleLoading } = useGoogleAuth();
 
   const anim = useRef(new Animated.Value(0)).current;
   const float1 = useRef(new Animated.Value(0)).current;
@@ -86,6 +88,19 @@ export default function LoginScreen() {
       Alert.alert('Login Failed', message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onGoogleSignIn = async () => {
+    try {
+      const userCredential = await handleGoogleSignIn();
+      if (userCredential?.user) {
+        await signInWithGoogle(userCredential);
+        router.replace('/home');
+      }
+    } catch (error) {
+      console.error('onGoogleSignIn error:', error);
+      Alert.alert('Google login failed', 'Unable to sign in with Google');
     }
   };
 
@@ -155,10 +170,22 @@ export default function LoginScreen() {
         <TouchableOpacity 
           style={[styles.mainButton, loading && styles.mainButtonDisabled]} 
           onPress={handleLogin}
-          disabled={loading}
+          disabled={loading || googleLoading}
         >
           <Text style={styles.mainButtonText}>
             {loading ? 'LOGGING IN...' : 'LOGIN'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Google SSO Button */}
+        <TouchableOpacity 
+          style={[styles.googleButton, (loading || googleLoading) && styles.googleButtonDisabled]} 
+          onPress={onGoogleSignIn}
+          disabled={loading || googleLoading}
+        >
+          <FontAwesome5 name="google" size={18} color="#EA4335" style={{ marginRight: 10 }} />
+          <Text style={styles.googleButtonText}>
+            {googleLoading ? 'WAITING...' : 'SIGN IN WITH GOOGLE'}
           </Text>
         </TouchableOpacity>
 
@@ -259,6 +286,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     textAlign: 'center',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 14,
+    borderRadius: 18,
+    marginTop: 12,
+    borderWidth: 1.5,
+    borderColor: '#eee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  googleButtonDisabled: {
+    opacity: 0.6,
+  },
+  googleButtonText: {
+    color: '#444',
+    fontSize: 14,
+    fontWeight: '700',
   },
   switchText: {
     marginTop: 18,
