@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from 'expo-router';
+import ChatbotModal from '@/components/ChatbotModal';
 
 const RED = "#c40000";
 
 export default function Home() {
   const router = useRouter();
+  const [chatOpen, setChatOpen] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(20)).current;
 
@@ -163,6 +165,18 @@ export default function Home() {
           <Text style={styles.navLabel}>Settings</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Floating Chatbot Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setChatOpen(true)}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.fabIcon}>💬</Text>
+      </TouchableOpacity>
+
+      {/* Chatbot Modal */}
+      <ChatbotModal visible={chatOpen} onClose={() => setChatOpen(false)} />
     </View>
   );
 }
@@ -321,5 +335,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: RED,
     fontWeight: '600',
+  },
+
+  // Floating Action Button (chatbot)
+  fab: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: RED,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: RED,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  fabIcon: {
+    fontSize: 26,
   },
 });
