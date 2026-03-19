@@ -22,6 +22,9 @@ import { ThemedView } from '../../components/themed-view';
 import { useThemeColor } from '../../hooks/use-theme-color';
 import BackButton from '@/components/ui/BackButton';
 import ScreenHeader from '@/components/ui/ScreenHeader';
+import InputField from '@/components/ui/InputField';
+import Checkbox from '@/components/ui/Checkbox';
+import PrimaryButton from '@/components/ui/PrimaryButton';
 
 const RED = "#c40000";
 
@@ -80,39 +83,8 @@ type ResumeInputFieldProps = {
   containerStyle?: any;
 };
 
-function ResumeInputField({
-  placeholder,
-  value,
-  onChangeText,
-  textColor,
-  multiline = false,
-  numberOfLines = 1,
-  keyboardType = 'default',
-  containerStyle = {},
-  ...props
-}: ResumeInputFieldProps) {
-  return (
-    <View style={[styles.inputContainer, containerStyle]}>
-      <TextInput
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        style={[
-          styles.textInput,
-          { color: textColor },
-          multiline && styles.multilineInput
-        ]}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        keyboardType={keyboardType}
-        placeholderTextColor="#999"
-        {...props}
-      />
-    </View>
-  );
-}
-
 export default function ResumeFormScreen() {
+  const { user } = useAuth();
   const textColor = useThemeColor({}, 'text');
   const { setGeneratedResumeData, setSelectedTemplateId: setContextSelectedTemplateId } = useResumeContext();
   const router = useRouter();
@@ -128,6 +100,7 @@ export default function ResumeFormScreen() {
     zipCode: '',
   });
 
+  const [targetRole, setTargetRole] = useState('');
   const [professionalSummary, setProfessionalSummary] = useState('');
 
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([
@@ -497,14 +470,26 @@ export default function ResumeFormScreen() {
                       textColor={textColor}
                     />
                     <InputField
-                      placeholder="ZIP"
-                      value={personalInfo.zipCode}
-                      onChangeText={(value: string) => updatePersonalInfo('zipCode', value)}
-                      containerStyle={[styles.inputContainer, styles.quarterInput]}
-                      textColor={textColor}
-                    />
-                  </View>
-                </ThemedView>
+                    placeholder="ZIP"
+                    value={personalInfo.zipCode}
+                    onChangeText={(value: string) => updatePersonalInfo('zipCode', value)}
+                    containerStyle={[styles.inputContainer, styles.quarterInput]}
+                    textColor={textColor}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <ThemedText style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: textColor }}>
+                    Target Job Title
+                  </ThemedText>
+                  <InputField
+                    placeholder="e.g. Senior Software Engineer"
+                    value={targetRole}
+                    onChangeText={setTargetRole}
+                    textColor={textColor}
+                  />
+                </View>
+              </ThemedView>
 
                 {/* Summary Section */}
                 <ThemedView style={styles.section}>
