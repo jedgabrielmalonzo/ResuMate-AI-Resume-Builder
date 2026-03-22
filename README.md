@@ -1,119 +1,83 @@
 # ResuMate 📄🤖
 
-ResuMate is a mobile application built with **React Native** that helps users create professional resumes and prepare for job interviews using **AI-generated questions**. The app provides an all-in-one solution for resume building, interview preparation, and resume exporting.
+**ResuMate** is a premium mobile career assistant built with **React Native (Expo)**. It empowers job seekers by combining professional resume building, AI-driven interview preparation, and real-time guidance through an intelligent chatbot.
 
 ---
 
-## 🚀 Features
+## ✨ Key Features
 
-### 🔐 Authentication
-- Login & Signup using **Firebase Authentication**
-- Secure user session handling
+### 🔐 Secure Authentication
+- Full onboarding and login/signup flow powered by **Firebase Auth**.
+- Persistent user sessions and profile management.
 
-### 🧾 Resume Builder
-- Input personal information, education, experience, and skills
-- Clean and professional resume layout
-- Real-time resume preview
+### 🧾 Smart Resume Builder
+- **Dynamic Input**: Easily load and manage personal info, education, and experience.
+- **Multiple Templates**: Choose from several professional designs:
+  - **Creative Portfolio**: Vibrant design for creative roles.
+  - **Executive Leadership**: Sleek, professional layout for senior roles.
+- **AI Integration**: Automatically suggests templates based on your profile.
 
-### 🤖 AI Interview Preparation
-- Generate mock interview questions based on:
-  - Job Title
-  - Company Name
-  - Job Description
-- Powered by **OpenAI / Gemini AI**
+### 🤖 AI Internal Prep & Chat
+- **Interview Specialist**: Generates custom mock interview questions for any Job Title or Company.
+- **ResuMate AI Assistant**: A floating chatbot on the Home screen to answer career questions and guide you through the app.
+- Powered by **Google Gemini AI**.
 
-### 📄 Resume Export
-- Download resume as **PDF**
-- Ready for printing or sharing
+### 📄 Export & Settings
+- **PDF Export**: Generate high-quality, print-ready PDFs of your resume.
+- **Customization**:
+  - **Theme Support**: Toggle between Light and Dark mode, or follow system settings.
+  - **Localization**: Support for English and Tagalog.
+  - **Notifications**: Manage app-wide alerts and reminders.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **React Native (Expo)**
-- **Firebase Authentication**
-- **Firebase Firestore** (optional for cloud storage)
-- **OpenAI API / Gemini API**
-- **Expo Print & Sharing**
-- **React Navigation**
-
----
-
-## 📁 Project Structure
-
-resumate/
-├── App.js
-├── firebase.js
-├── src/
-│ ├── navigation/
-│ ├── screens/
-│ │ ├── auth/
-│ │ ├── home/
-│ │ ├── resume/
-│ │ └── interview/
-│ ├── components/
-│ ├── context/
-│ ├── services/
-│ ├── utils/
-│ └── constants/
-├── assets/
-└── .env
-
-yaml
-Copy code
+- **Framework**: [React Native (Expo)](https://expo.dev/)
+- **API**: [Google Gemini AI](https://ai.google.dev/)
+- **Backend**: [Firebase](https://firebase.google.com/) (Auth & Firestore)
+- **Styling**: Vanilla React Native StyleSheet with "Modern Minimal" design system.
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (Link-based navigation).
 
 ---
 
 ## ⚙️ Installation & Setup
 
-1. Clone the repository
-```bash
-git clone https://github.com/USERNAME/resumate.git
-Install dependencies
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/USERNAME/resumate.git
+   cd resumate
+   ```
 
-bash
-Copy code
-npm install
-Create .env file
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-env
-Copy code
-OPENAI_API_KEY=your_api_key_here
-Start the app
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+   ```
 
-bash
-Copy code
-npx expo start
-🔑 Firebase Setup
-Enable Email & Password Authentication
+4. **Start the Development Server**:
+   ```bash
+   npx expo start
+   ```
 
-Create a Firebase project
+---
 
-Add your Firebase config in firebase.js
+## 👨‍💻 Development Team
 
-📌 Use Case
-This application is ideal for:
+ResuMate was built with ❤️ by:
+- **Anday**, Jorich Rance L.
+- **Bangate**, Gemil Bryle B.
+- **Malonzo**, Jed Gabriel D.
+- **Polvito**, Paul Carlo V.
+- **Portera**, Jasdy Kean P.
 
-Students
+---
 
-Fresh graduates
-
-Job seekers
-
-Portfolio & academic projects
-
-🎯 Project Status
-🚧 Currently under development
-Planned improvements:
-
-Multiple resume templates
-
-Resume cloud backup
-
-AI answer evaluation
-
-Dark mode
-
-👨‍💻 Developers
-ResuMate Team
-Built as a school / portfolio project using modern mobile development technologies.
+## 🎯 Project Status
+✅ **Completed**: Resume Templates, Dark Mode, AI Chatbot, Functional Settings, Interview Prep Redesign.
+🚧 **Future**: Cloud storage for resumes, AI-powered answer scoring, and more templates.
