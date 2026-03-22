@@ -2,7 +2,7 @@ import ChatbotModal from "@/components/ChatbotModal";
 import BottomNav from "@/components/ui/BottomNav";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Image,
@@ -103,7 +103,7 @@ export default function Home() {
       </View>
 
       {/* Main Content */}
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 110,
+    bottom: 140,
     right: 24,
     width: 60,
     height: 60,

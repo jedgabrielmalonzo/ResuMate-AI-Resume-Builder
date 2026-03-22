@@ -8,28 +8,37 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '@/context/AuthContext';
 import { ResumeContext } from '@/context/ResumeContext';
+import { SettingsProvider, useSettings } from '@/context/SettingsContext';
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function RootLayoutContent() {
+  const { resolvedTheme } = useSettings();
   const [generatedResumeData, setGeneratedResumeData] = useState<any>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   return (
+    <ResumeContext.Provider value={{ generatedResumeData, setGeneratedResumeData, selectedTemplateId, setSelectedTemplateId }}>
+      <ThemeProvider value={resolvedTheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="GetStarted" options={{ headerShown: false }} />
+          <Stack.Screen name="home" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        </Stack>
+        <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
+      </ThemeProvider>
+    </ResumeContext.Provider>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ResumeContext.Provider value={{ generatedResumeData, setGeneratedResumeData, selectedTemplateId, setSelectedTemplateId }}>
+      <SettingsProvider>
         <AuthProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="GetStarted" options={{ headerShown: false }} />
-              <Stack.Screen name="home" options={{ headerShown: false }} />
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
+          <RootLayoutContent />
         </AuthProvider>
-      </ResumeContext.Provider>
+      </SettingsProvider>
     </GestureHandlerRootView>
   );
 }

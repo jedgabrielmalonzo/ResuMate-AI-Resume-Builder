@@ -34,12 +34,13 @@ export default function ScreenHeader({
 
 const styles = StyleSheet.create({
     header: {
-        marginBottom: 20,
+        paddingTop: 10,
+        marginBottom: 24,
         backgroundColor: 'transparent',
     },
     backButton: {
         paddingHorizontal: 0,
-        marginBottom: 8,
+        marginBottom: 20,
     },
     title: {
         fontSize: 32,

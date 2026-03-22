@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import {
@@ -9,13 +10,13 @@ import {
 } from "react-native";
 
 const ACTIVE_COLOR = "#c40000";
-const INACTIVE_COLOR = "rgba(255,255,255,0.4)";
-const PILL_BG = "#d3d2d2ff";
+const INACTIVE_COLOR = "#000000";
+const PILL_BG = "#f0f0f0ff";
 const ACTIVE_DOT = "#c40000";
 
 type NavItemProps = {
   route: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   active: boolean;
   onPress: () => void;
@@ -61,7 +62,11 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
       >
         {/* Inner: native-animated scale (useNativeDriver: true) */}
         <Animated.View style={{ transform: [{ scale }] }}>
-          <Text style={styles.icon}>{icon}</Text>
+          <Ionicons
+            name={active ? icon : (`${icon}-outline` as any)}
+            size={22}
+            color={active ? "#fff" : INACTIVE_COLOR}
+          />
         </Animated.View>
       </Animated.View>
       <Text
@@ -92,21 +97,21 @@ export default function BottomNav() {
       <View style={styles.pill}>
         <NavItem
           route="/Account"
-          icon="👤"
+          icon="person"
           label="Account"
           active={isActive("/Account")}
           onPress={() => handleNavigation("/Account")}
         />
         <NavItem
           route="/home"
-          icon="🏠"
+          icon="home"
           label="Home"
           active={isActive("/home")}
           onPress={() => handleNavigation("/home")}
         />
         <NavItem
           route="/settings"
-          icon="⚙️"
+          icon="settings"
           label="Settings"
           active={isActive("/settings")}
           onPress={() => handleNavigation("/settings")}
