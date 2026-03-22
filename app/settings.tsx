@@ -3,19 +3,19 @@ import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    Switch,
-    Modal,
-    Linking,
+  Alert,
+  Linking,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const RED = "#c40000";
@@ -26,11 +26,11 @@ type ModalContent = 'privacy' | 'terms' | 'about' | null;
 export default function SettingsScreen() {
   const router = useRouter();
   const { logout, user } = useAuth();
-  const { 
-    themePreference, setThemePreference, 
+  const {
+    themePreference, setThemePreference,
     notificationsEnabled, setNotificationsEnabled,
     language, setLanguage,
-    resolvedTheme 
+    resolvedTheme
   } = useSettings();
 
   const [activeModal, setActiveModal] = useState<ModalContent>(null);
@@ -97,8 +97,8 @@ export default function SettingsScreen() {
     switchValue?: boolean;
     onSwitchChange?: (val: boolean) => void;
   }) => (
-    <TouchableOpacity 
-      style={[styles.settingItem, isLast && { borderBottomWidth: 0 }]} 
+    <TouchableOpacity
+      style={[styles.settingItem, isLast && { borderBottomWidth: 0 }]}
       onPress={onPress}
       disabled={hasSwitch}
       activeOpacity={0.6}
@@ -111,8 +111,8 @@ export default function SettingsScreen() {
       </View>
       <View style={styles.settingRight}>
         {hasSwitch ? (
-          <Switch 
-            value={switchValue} 
+          <Switch
+            value={switchValue}
             onValueChange={onSwitchChange}
             trackColor={{ false: "#eee", true: RED }}
             thumbColor="#fff"
@@ -185,7 +185,7 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.profileCard, resolvedTheme === 'dark' && styles.bgDark]}
           onPress={() => router.push("/Account")}
           activeOpacity={0.9}
@@ -272,7 +272,7 @@ export default function SettingsScreen() {
           <TouchableOpacity style={[styles.logoutButton, resolvedTheme === 'dark' && styles.bgDark]} onPress={handleLogout} activeOpacity={0.7}>
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
-          <Text style={styles.versionText}>Made with ❤️ for your career</Text>
+          <Text style={styles.versionText}>i love maam daisy</Text>
         </View>
 
         <View style={{ height: 120 }} />
