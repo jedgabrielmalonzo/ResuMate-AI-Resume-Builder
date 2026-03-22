@@ -3,13 +3,13 @@ import BottomNav from "@/components/ui/BottomNav";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Image,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const RED = "#c40000";
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   // Floating Action Button (chatbot)
   fab: {
     position: "absolute",
-    bottom: 100,
+    bottom: 120,
     right: 20,
     width: 56,
     height: 56,
