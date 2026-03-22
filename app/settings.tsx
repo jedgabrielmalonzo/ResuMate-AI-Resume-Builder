@@ -5,17 +5,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Linking,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Linking,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const RED = "#c40000";
@@ -145,7 +145,7 @@ export default function SettingsScreen() {
         case "about":
           return {
             title: "About Resumate",
-            body: "Resumate is your all-in-one AI career assistant. Built with ❤️ for developers and job seekers alike, our mission is to empower you with professional tools to land your dream job.\n\nVersion: 1.0.0\n\nDevelopers:\n• Anday, Jorich Rance L.\n• Bangate, Gemil Bryle B.\n• Malonzo, Jed Gabriel D.\n• Polvito, Paul Carlo V.\n• Portera, Jasdy Kean P.\n\nBuilt with Expo & Gemini.",
+            body: "Resumate is your all-in-one AI career assistant. Built with ❤️ for developers and job seekers alike, our mission is to empower you with professional tools to land your dream job.\n\nVersion: 1.0.0\n\nDevelopers:\n• Anday, Jorich Rance L.\n• Bangate, Gemil Bryle B.\n• Malonzo, Jed Gabriel D.\n• Polvito, Paul Carlo V.\n• Portera, Jasdy Kean P.\n",
           };
         default:
           return { title: "", body: "" };
@@ -238,9 +238,9 @@ export default function SettingsScreen() {
             <Text style={styles.avatarText}>
               {user?.displayName
                 ? user.displayName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
                 : user?.email?.[0]?.toUpperCase() || "U"}
             </Text>
           </View>
