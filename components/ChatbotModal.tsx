@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 import { sendChatMessage, ChatMessage } from '@/services/chatService';
 
 const RED = '#c40000';
@@ -76,9 +77,15 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           isUser ? styles.userBubble : styles.botBubble,
         ]}
       >
-        <Text style={[styles.bubbleText, isUser ? styles.userText : styles.botText]}>
+        <Markdown style={{
+          body: {
+            ...StyleSheet.flatten(styles.bubbleText),
+            ...(isUser ? styles.userText : styles.botText)
+          },
+          paragraph: { marginTop: 0, marginBottom: 0 }
+        }}>
           {message.text}
-        </Text>
+        </Markdown>
       </View>
     </View>
   );
