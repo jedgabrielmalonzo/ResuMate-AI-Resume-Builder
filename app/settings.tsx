@@ -5,32 +5,35 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  Linking,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Linking,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const RED = "#c40000";
 const OFF_WHITE = "#f8f9fa";
 
-type ModalContent = 'privacy' | 'terms' | 'about' | null;
+type ModalContent = "privacy" | "terms" | "about" | null;
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { logout, user } = useAuth();
   const {
-    themePreference, setThemePreference,
-    notificationsEnabled, setNotificationsEnabled,
-    language, setLanguage,
-    resolvedTheme
+    themePreference,
+    setThemePreference,
+    notificationsEnabled,
+    setNotificationsEnabled,
+    language,
+    setLanguage,
+    resolvedTheme,
   } = useSettings();
 
   const [activeModal, setActiveModal] = useState<ModalContent>(null);
@@ -54,28 +57,20 @@ export default function SettingsScreen() {
   };
 
   const showThemePicker = () => {
-    Alert.alert(
-      "Select Theme",
-      "Choose your preferred appearance.",
-      [
-        { text: "System Default", onPress: () => setThemePreference('system') },
-        { text: "Light", onPress: () => setThemePreference('light') },
-        { text: "Dark", onPress: () => setThemePreference('dark') },
-        { text: "Cancel", style: "cancel" }
-      ]
-    );
+    Alert.alert("Select Theme", "Choose your preferred appearance.", [
+      { text: "System Default", onPress: () => setThemePreference("system") },
+      { text: "Light", onPress: () => setThemePreference("light") },
+      { text: "Dark", onPress: () => setThemePreference("dark") },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
   const showLanguagePicker = () => {
-    Alert.alert(
-      "Select Language",
-      "Choose your preferred language.",
-      [
-        { text: "English", onPress: () => setLanguage('en') },
-        { text: "Tagalog", onPress: () => setLanguage('tl') },
-        { text: "Cancel", style: "cancel" }
-      ]
-    );
+    Alert.alert("Select Language", "Choose your preferred language.", [
+      { text: "English", onPress: () => setLanguage("en") },
+      { text: "Tagalog", onPress: () => setLanguage("tl") },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
   const SettingItem = ({
@@ -107,7 +102,14 @@ export default function SettingsScreen() {
         <View style={styles.iconContainer}>
           <Ionicons name={icon as any} size={20} color={RED} />
         </View>
-        <Text style={[styles.settingLabel, resolvedTheme === 'dark' && styles.textDark]}>{label}</Text>
+        <Text
+          style={[
+            styles.settingLabel,
+            resolvedTheme === "dark" && styles.textDark,
+          ]}
+        >
+          {label}
+        </Text>
       </View>
       <View style={styles.settingRight}>
         {hasSwitch ? (
@@ -130,22 +132,23 @@ export default function SettingsScreen() {
   const InfoModal = () => {
     const getContent = () => {
       switch (activeModal) {
-        case 'privacy':
+        case "privacy":
           return {
-            title: 'Privacy Policy',
-            body: 'At Resumate, we value your privacy. We only collect data necessary to provide you with the best resume generating experience. Your personal details are stored securely on our encrypted servers and are never shared with third parties without your explicit consent.\n\nWe use Gemini AI to process your inputs, but we do not use your personal data to train public models.'
+            title: "Privacy Policy",
+            body: "At Resumate, we value your privacy. We only collect data necessary to provide you with the best resume generating experience. Your personal details are stored securely on our encrypted servers and are never shared with third parties without your explicit consent.\n\nWe use Gemini AI to process your inputs, but we do not use your personal data to train public models.",
           };
-        case 'terms':
+        case "terms":
           return {
-            title: 'Terms of Service',
-            body: 'By using Resumate, you agree to our terms. This application is provided "as is" to help you prepare for your career. You are responsible for the accuracy of information provided in your resumes.\n\nPlease use the AI features ethically and ensure all claims in your generated resumes are truthful.'
+            title: "Terms of Service",
+            body: 'By using Resumate, you agree to our terms. This application is provided "as is" to help you prepare for your career. You are responsible for the accuracy of information provided in your resumes.\n\nPlease use the AI features ethically and ensure all claims in your generated resumes are truthful.',
           };
-        case 'about':
+        case "about":
           return {
-            title: 'About Resumate',
-            body: 'Resumate is your all-in-one AI career assistant. Built with ❤️ for developers and job seekers alike, our mission is to empower you with professional tools to land your dream job.\n\nVersion: 1.0.0\nDeveloper: Resumate Team\nBuilt with Expo & Gemini.'
+            title: "About Resumate",
+            body: "Resumate is your all-in-one AI career assistant. Built with ❤️ for developers and job seekers alike, our mission is to empower you with professional tools to land your dream job.\n\nVersion: 1.0.0\n\nDevelopers:\n• Anday, Jorich Rance L.\n• Bangate, Gemil Bryle B.\n• Malonzo, Jed Gabriel D.\n• Polvito, Paul Carlo V.\n• Portera, Jasdy Kean P.\n\nBuilt with Expo & Gemini.",
           };
-        default: return { title: '', body: '' };
+        default:
+          return { title: "", body: "" };
       }
     };
 
@@ -159,15 +162,34 @@ export default function SettingsScreen() {
         onRequestClose={() => setActiveModal(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, resolvedTheme === 'dark' && styles.bgDark]}>
+          <View
+            style={[
+              styles.modalContent,
+              resolvedTheme === "dark" && styles.bgDark,
+            ]}
+          >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, resolvedTheme === 'dark' && styles.textDark]}>{title}</Text>
+              <Text
+                style={[
+                  styles.modalTitle,
+                  resolvedTheme === "dark" && styles.textDark,
+                ]}
+              >
+                {title}
+              </Text>
               <TouchableOpacity onPress={() => setActiveModal(null)}>
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalScroll}>
-              <Text style={[styles.modalBody, resolvedTheme === 'dark' && styles.textSecondaryDark]}>{body}</Text>
+              <Text
+                style={[
+                  styles.modalBody,
+                  resolvedTheme === "dark" && styles.textSecondaryDark,
+                ]}
+              >
+                {body}
+              </Text>
             </ScrollView>
           </View>
         </View>
@@ -176,29 +198,59 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, resolvedTheme === 'dark' && styles.bgDarkContainer]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        resolvedTheme === "dark" && styles.bgDarkContainer,
+      ]}
+    >
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle={resolvedTheme === 'dark' ? "light-content" : "dark-content"} />
+      <StatusBar
+        barStyle={resolvedTheme === "dark" ? "light-content" : "dark-content"}
+      />
 
-      <View style={[styles.header, resolvedTheme === 'dark' && styles.bgDarkContainer]}>
-        <Text style={[styles.headerTitle, resolvedTheme === 'dark' && styles.textDark]}>Settings</Text>
+      <View
+        style={[
+          styles.header,
+          resolvedTheme === "dark" && styles.bgDarkContainer,
+        ]}
+      >
+        <Text
+          style={[
+            styles.headerTitle,
+            resolvedTheme === "dark" && styles.textDark,
+          ]}
+        >
+          Settings
+        </Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <TouchableOpacity
-          style={[styles.profileCard, resolvedTheme === 'dark' && styles.bgDark]}
+          style={[
+            styles.profileCard,
+            resolvedTheme === "dark" && styles.bgDark,
+          ]}
           onPress={() => router.push("/Account")}
           activeOpacity={0.9}
         >
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {user?.displayName
-                ? user.displayName.split(" ").map((n) => n[0]).join("")
+                ? user.displayName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
                 : user?.email?.[0]?.toUpperCase() || "U"}
             </Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, resolvedTheme === 'dark' && styles.textDark]}>
+            <Text
+              style={[
+                styles.profileName,
+                resolvedTheme === "dark" && styles.textDark,
+              ]}
+            >
               {user?.displayName || "User"}
             </Text>
             <Text style={styles.profileEmail}>{user?.email}</Text>
@@ -208,11 +260,19 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
-          <View style={[styles.sectionCard, resolvedTheme === 'dark' && styles.bgDark]}>
+          <View
+            style={[
+              styles.sectionCard,
+              resolvedTheme === "dark" && styles.bgDark,
+            ]}
+          >
             <SettingItem
               icon="color-palette-outline"
               label="Theme"
-              value={themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}
+              value={
+                themePreference.charAt(0).toUpperCase() +
+                themePreference.slice(1)
+              }
               onPress={showThemePicker}
             />
             <SettingItem
@@ -225,7 +285,7 @@ export default function SettingsScreen() {
             <SettingItem
               icon="language-outline"
               label="Language"
-              value={language === 'en' ? 'English' : 'Tagalog'}
+              value={language === "en" ? "English" : "Tagalog"}
               isLast={true}
               onPress={showLanguagePicker}
             />
@@ -234,27 +294,35 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support & Info</Text>
-          <View style={[styles.sectionCard, resolvedTheme === 'dark' && styles.bgDark]}>
+          <View
+            style={[
+              styles.sectionCard,
+              resolvedTheme === "dark" && styles.bgDark,
+            ]}
+          >
             <SettingItem
               icon="shield-checkmark-outline"
               label="Privacy Policy"
-              onPress={() => setActiveModal('privacy')}
+              onPress={() => setActiveModal("privacy")}
             />
             <SettingItem
               icon="document-text-outline"
               label="Terms of Service"
-              onPress={() => setActiveModal('terms')}
+              onPress={() => setActiveModal("terms")}
             />
             <SettingItem
               icon="mail-outline"
               label="Contact Support"
               onPress={async () => {
-                const url = 'mailto:support@resumate.app';
+                const url = "mailto:support@resumate.app";
                 const supported = await Linking.canOpenURL(url);
                 if (supported) {
                   await Linking.openURL(url);
                 } else {
-                  Alert.alert("Error", "No email app found. Please contact us at support@resumate.app");
+                  Alert.alert(
+                    "Error",
+                    "No email app found. Please contact us at support@resumate.app",
+                  );
                 }
               }}
             />
@@ -263,13 +331,20 @@ export default function SettingsScreen() {
               label="About Resumate"
               value="v1.0.0"
               isLast={true}
-              onPress={() => setActiveModal('about')}
+              onPress={() => setActiveModal("about")}
             />
           </View>
         </View>
 
         <View style={styles.accountActions}>
-          <TouchableOpacity style={[styles.logoutButton, resolvedTheme === 'dark' && styles.bgDark]} onPress={handleLogout} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={[
+              styles.logoutButton,
+              resolvedTheme === "dark" && styles.bgDark,
+            ]}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
           <Text style={styles.versionText}>i love maam daisy</Text>
@@ -290,17 +365,17 @@ const styles = StyleSheet.create({
     backgroundColor: OFF_WHITE,
   },
   bgDarkContainer: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   bgDark: {
-    backgroundColor: '#1a1a2e',
-    borderColor: '#2a2a4e',
+    backgroundColor: "#1a1a2e",
+    borderColor: "#2a2a4e",
   },
   textDark: {
-    color: '#fff',
+    color: "#fff",
   },
   textSecondaryDark: {
-    color: '#adb5bd',
+    color: "#adb5bd",
   },
   header: {
     paddingHorizontal: 24,
@@ -335,7 +410,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 20,
-    backgroundColor: '#fff5f5',
+    backgroundColor: "#fff5f5",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -373,7 +448,7 @@ const styles = StyleSheet.create({
   sectionCard: {
     backgroundColor: "white",
     borderRadius: 24,
-    overflow: 'hidden',
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -418,18 +493,18 @@ const styles = StyleSheet.create({
   },
   accountActions: {
     marginTop: 10,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 15,
   },
   logoutButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 16,
     borderRadius: 20,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: '#ffe3e3',
+    borderColor: "#ffe3e3",
   },
   logoutText: {
     color: RED,
@@ -443,26 +518,26 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
-    maxHeight: '80%',
+    maxHeight: "80%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1a1a2e',
+    fontWeight: "800",
+    color: "#1a1a2e",
   },
   modalScroll: {
     marginBottom: 20,
@@ -470,6 +545,6 @@ const styles = StyleSheet.create({
   modalBody: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#495057',
+    color: "#495057",
   },
 });
