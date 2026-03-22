@@ -103,6 +103,16 @@ function getFormatInstructions(template: ResumeTemplate): string {
         'Emphasize education, projects, internships/volunteer work, and transferable skills.',
         'Minimize formal work-history dependency and focus on potential and relevant output.',
       ].join(' ');
+    case 'creative':
+      return [
+        'Focus on project outcomes, creative problem-solving, and unique technical skills.',
+        'Use punchy, engaging language and emphasize portfolio highlights.',
+      ].join(' ');
+    case 'executive':
+      return [
+        'Prioritize high-level strategic impact, leadership philosophy, and business transformation.',
+        'Focus on ROI, team scale, and board-level achievements.',
+      ].join(' ');
     default:
       return 'Write a clear, professional resume tailored to the selected format.';
   }
@@ -124,6 +134,10 @@ function getTemplateBaseReason(template: ResumeTemplate): string {
       return 'Best for networking events and quick introductions.';
     case 'student-entry':
       return 'Best for students and fresh graduates building their first professional profile.';
+    case 'creative':
+      return 'Best for creative roles where projects and unique skills are the main focus.';
+    case 'executive':
+      return 'Best for high-level leadership roles requiring a focus on strategic impact.';
     default:
       return 'A suitable format based on your profile.';
   }
@@ -184,14 +198,32 @@ Instructions:
 }
 
 export async function getTemplateRecommendations(userData: any, jobField: string, templates: ResumeTemplate[]) {
-  // prompt for Gemini
   const templateList = templates.map(t => `ID: ${t.id}, Name: ${t.name}, Description: ${t.description}`).join('\n');
-  const prompt = `Given the following user information: ${JSON.stringify(userData)}\nTarget job/field: ${jobField}\nHere are available resume templates:\n${templateList}\nRecommend the 3 most suitable template IDs for this user and explain your choices.`;
+  const prompt = `You are a career expert. Given the following user information: 
+${JSON.stringify({ 
+  targetRole: userData.targetRole, 
+  professionalSummary: userData.professionalSummary,
+  hasExperience: !!userData.workExperience?.length,
+  hasEducation: !!userData.education?.length
+})}
+Target job/field: ${jobField}
 
-  // Example response format
-  return [
-    { id: 'classic', reason: 'Best for general entry-level jobs.' },
-    { id: 'modern', reason: 'Highlights skills for recent graduates.' },
-    { id: 'it', reason: 'Tailored for IT/CS graduates.' },
-  ];
+Here are available resume templates:
+${templateList}
+
+Recommend the top 2-3 most suitable template IDs for this user and explain your choices in 1 short sentence each.
+Return ONLY a valid JSON array of objects: [{"id": "template-id", "reason": "short explanation"}]`;
+
+  try {
+    const raw = await callGeminiAPI(prompt);
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    return JSON.parse(cleaned) as TemplateRecommendation[];
+  } catch (error) {
+    console.error('Error getting template recommendations:', error);
+    // Fallback to basic logic if AI fails
+    return [
+      { id: 'chronological', reason: 'A safe, professional choice for most roles.' },
+      { id: 'hybrid', reason: 'Good for balancing skills and experience.' }
+    ];
+  }
 }

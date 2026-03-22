@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { resumeTemplates } from '@/components/resume/templates';
 import { getTemplateRecommendations, generateResume } from '@/services/aiService';
 import { useResumeContext } from '@/context/ResumeContext';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { resumeService } from '@/services/resumeService';
+import { resumeService, SavedResume } from '@/services/resumeService';
+import { Ionicons } from '@expo/vector-icons';
 
 import {
   View,
@@ -147,6 +148,67 @@ export default function ResumeFormScreen() {
   ]);
 
   const [hasWorkExperience, setHasWorkExperience] = useState(true);
+  const [latestResume, setLatestResume] = useState<SavedResume | null>(null);
+  const [loadingLatest, setLoadingLatest] = useState(false);
+
+  useEffect(() => {
+    if (user?.uid) {
+      loadHistory();
+    }
+  }, [user?.uid]);
+
+  const loadHistory = async () => {
+    if (!user?.uid) return;
+    try {
+      const resumes = await resumeService.getUserResumes(user.uid);
+      if (resumes.length > 0) {
+        // Sort by date manually since current service doesn't have orderBy index yet
+        const sorted = resumes.sort((a, b) => {
+          const dateA = a.createdAt?.seconds || 0;
+          const dateB = b.createdAt?.seconds || 0;
+          return dateB - dateA;
+        });
+        setLatestResume(sorted[0]);
+      }
+    } catch (error) {
+      console.error('Error loading resume history:', error);
+    }
+  };
+
+  const handleLoadLatest = () => {
+    if (!latestResume) return;
+
+    Alert.alert(
+      "Load Latest Resume?",
+      "This will overwrite your current input with data from your last saved resume.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Load",
+          onPress: () => {
+            const data = latestResume.userData;
+            if (!data) {
+              Alert.alert("Error", "No raw data found in this resume record.");
+              return;
+            }
+            
+            // Map saved userData back to form state
+            setPersonalInfo(data.personalInfo || personalInfo);
+            setTargetRole(data.targetRole || '');
+            setProfessionalSummary(data.professionalSummary || '');
+            setWorkExperience(data.workExperience?.length ? data.workExperience : workExperience);
+            setEducation(data.education?.length ? data.education : education);
+            setSkills(data.skills?.length ? data.skills : skills);
+            setProjects(data.projects?.length ? data.projects : projects);
+            setAchievements(data.achievements?.length ? data.achievements : achievements);
+            setHasWorkExperience(!!data.workExperience?.length);
+            
+            Alert.alert("Success", "Last resume data has been loaded.");
+          }
+        }
+      ]
+    );
+  };
 
   const updatePersonalInfo = (field: keyof PersonalInfo, value: string) => {
     setPersonalInfo(prev => ({
@@ -299,7 +361,7 @@ export default function ResumeFormScreen() {
       // Save to Firebase before redirecting
       if (user?.uid) {
         try {
-          await resumeService.saveResume(user.uid, result, selectedTemplateId ?? 'classic');
+          await resumeService.saveResume(user.uid, result, selectedTemplateId ?? 'classic', userData);
           console.log('Resume saved to Firestore from form');
         } catch (saveError) {
           console.error('Failed to save resume:', saveError);
@@ -353,63 +415,116 @@ export default function ResumeFormScreen() {
               subtitle="Fill out your information to create a professional resume"
             />
 
+            {latestResume && !showRecommendations && (
+              <TouchableOpacity
+                style={styles.loadDataButton}
+                onPress={handleLoadLatest}
+                activeOpacity={0.7}
+              >
+                <View style={styles.loadDataContent}>
+                  <Ionicons name="refresh-circle" size={24} color={RED} />
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={styles.loadDataTitle}>Load from last resume</Text>
+                    <Text style={styles.loadDataSubtitle}>
+                      Use data from "{latestResume.title}"
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+
             {showRecommendations && (
-              <ThemedView style={[styles.section, { backgroundColor: '#f7f7f7', borderRadius: 8, marginBottom: 24 }]}>
-                <ThemedText style={[styles.sectionTitle, { marginBottom: 8 }]}>Recommended Templates</ThemedText>
+              <ThemedView style={styles.templatesContainer}>
+                <View style={styles.templatesHeader}>
+                  <ThemedText style={styles.templatesTitle}>Choose a Template</ThemedText>
+                  <ThemedText style={styles.templatesSubtitle}>Based on your profile, we recommend these professional layouts.</ThemedText>
+                </View>
+
                 {templateRecommendations.map((rec) => {
                   const template = resumeTemplates.find(t => t.id === rec.id);
+                  const isSelected = selectedTemplateId === template?.id;
+                  
                   return template ? (
-                    <View key={template.id} style={{ marginBottom: 16, borderWidth: 1, borderColor: selectedTemplateId === template.id ? '#007AFF' : '#ddd', borderRadius: 6, padding: 12, backgroundColor: selectedTemplateId === template.id ? '#e6f0ff' : '#fff' }}>
-                      <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{template.name}</Text>
-                      <Text style={{ color: '#555', marginBottom: 4 }}>{template.description}</Text>
-                      <Text style={{ color: '#333', marginBottom: 4 }}>
-                        Best for: {template.bestFor}
-                      </Text>
-                      <Text style={{ color: '#666', marginBottom: 8 }}>
-                        Suitable fields: {template.jobFields.join(', ')}
-                      </Text>
-                      {template.tips.slice(0, 2).map((tip) => (
-                        <Text key={tip} style={{ color: '#555', marginBottom: 2 }}>• {tip}</Text>
-                      ))}
-                      <Text style={{ fontStyle: 'italic', color: '#007AFF', marginBottom: 8 }}>{rec.reason}</Text>
-                      <TouchableOpacity
-                        style={{ backgroundColor: selectedTemplateId === template.id ? '#007AFF' : '#eee', padding: 8, borderRadius: 4 }}
-                        onPress={() => setSelectedTemplateId(template.id)}
-                      >
-                        <Text style={{ color: selectedTemplateId === template.id ? '#fff' : '#007AFF', textAlign: 'center' }}>
-                          {selectedTemplateId === template.id ? 'Selected' : 'Select this template'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity 
+                      key={template.id} 
+                      style={[styles.templateCard, isSelected && styles.templateCardSelected]}
+                      onPress={() => setSelectedTemplateId(template.id)}
+                      activeOpacity={0.9}
+                    >
+                      <View style={styles.templateCardHeader}>
+                        <View style={styles.templateIconTitle}>
+                          <View style={[styles.templateIconCircle, { backgroundColor: isSelected ? 'rgba(196, 0, 0, 0.1)' : '#f5f5f5' }]}>
+                            <Ionicons 
+                              name={template.id === 'creative' ? 'color-palette' : template.id === 'executive' ? 'ribbon' : 'document-text'} 
+                              size={22} 
+                              color={isSelected ? RED : '#666'} 
+                            />
+                          </View>
+                          <View>
+                            <Text style={styles.templateName}>{template.name}</Text>
+                            <Text style={styles.templateCategory}>{template.category}</Text>
+                          </View>
+                        </View>
+                        {isSelected && (
+                          <View style={styles.selectedBadge}>
+                            <Ionicons name="checkmark-circle" size={20} color={RED} />
+                          </View>
+                        )}
+                      </View>
+
+                      <Text style={styles.templateDescription}>{template.description}</Text>
+                      
+                      <View style={styles.recommendationReason}>
+                        <Ionicons name="sparkles" size={14} color="#007AFF" />
+                        <Text style={styles.recommendationText}>{rec.reason}</Text>
+                      </View>
+
+                      <View style={styles.templateMeta}>
+                        <View style={styles.metaItem}>
+                          <Ionicons name="briefcase-outline" size={14} color="#888" />
+                          <Text style={styles.metaText}>{template.bestFor.split(',')[0]}...</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
                   ) : null;
                 })}
 
-                <TouchableOpacity
-                  style={{ marginTop: 8, alignSelf: 'center' }}
-                  onPress={() => setShowRecommendations(false)}
-                >
-                  <Text style={{ color: '#007AFF', textDecorationLine: 'underline' }}>Back to form</Text>
-                </TouchableOpacity>
+                <View style={styles.templateActions}>
+                  {selectedTemplateId && (
+                    <TouchableOpacity
+                      style={styles.generateButton}
+                      onPress={handleGenerateResume}
+                      disabled={generating}
+                    >
+                      <Text style={styles.generateButtonText}>
+                        {generating ? 'Generating Resume...' : 'Generate My Resume'}
+                      </Text>
+                      {!generating && <Ionicons name="arrow-forward" size={20} color="#fff" />}
+                    </TouchableOpacity>
+                  )}
 
-                {/* Resume Button */}
-                {selectedTemplateId && (
                   <TouchableOpacity
-                    style={{ marginTop: 20, backgroundColor: '#c40000', padding: 16, borderRadius: 10, alignItems: 'center' }}
-                    onPress={handleGenerateResume}
-                    disabled={generating}
+                    style={styles.backToFormButton}
+                    onPress={() => setShowRecommendations(false)}
                   >
-                    <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
-                      {generating ? 'Generating...' : '✨ Generate Resume'}
-                    </Text>
+                    <Text style={styles.backToFormText}>Back to Edit Information</Text>
                   </TouchableOpacity>
-                )}
+                </View>
               </ThemedView>
             )}
 
             {!showRecommendations && (
               <>
-                <ThemedView style={styles.section}>
-                  <ThemedText style={styles.sectionTitle}>Personal Information</ThemedText>
+                <ThemedView style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="person" size={20} color={RED} />
+                      </View>
+                      <ThemedText style={styles.sectionTitle}>Personal Info</ThemedText>
+                    </View>
+                  </View>
 
                   <View style={styles.row}>
                     <InputField
@@ -492,8 +607,15 @@ export default function ResumeFormScreen() {
               </ThemedView>
 
                 {/* Summary Section */}
-                <ThemedView style={styles.section}>
-                  <ThemedText style={styles.sectionTitle}>Professional Summary</ThemedText>
+                <ThemedView style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="document-text" size={20} color={RED} />
+                      </View>
+                      <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
+                    </View>
+                  </View>
                   <InputField
                     placeholder="Write a brief summary of your professional background and career objectives..."
                     value={professionalSummary}
@@ -506,8 +628,15 @@ export default function ResumeFormScreen() {
                 </ThemedView>
 
                 {/* Work Experience Section */}
-                <ThemedView style={styles.section}>
-                  <ThemedText style={styles.sectionTitle}>Work Experience</ThemedText>
+                <ThemedView style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="briefcase" size={20} color={RED} />
+                      </View>
+                      <ThemedText style={styles.sectionTitle}>Work Experience</ThemedText>
+                    </View>
+                  </View>
 
                   <Checkbox
                     checked={hasWorkExperience}
@@ -595,11 +724,16 @@ export default function ResumeFormScreen() {
                 </ThemedView>
 
                 {/* Education Section */}
-                <ThemedView style={styles.section}>
+                <ThemedView style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <ThemedText style={styles.sectionTitle}>Education</ThemedText>
-                    <TouchableOpacity onPress={addEducation} style={styles.addButton}>
-                      <ThemedText style={styles.addButtonText}>+ Add</ThemedText>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="school" size={20} color={RED} />
+                      </View>
+                      <ThemedText style={styles.sectionTitle}>Education</ThemedText>
+                    </View>
+                    <TouchableOpacity onPress={addEducation} style={styles.addButtonMinimal}>
+                      <Ionicons name="add-circle" size={28} color={RED} />
                     </TouchableOpacity>
                   </View>
 
@@ -662,11 +796,16 @@ export default function ResumeFormScreen() {
                 </ThemedView>
 
                 {/* Skills */}
-                <ThemedView style={styles.section}>
+                <ThemedView style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <ThemedText style={styles.sectionTitle}>Skills</ThemedText>
-                    <TouchableOpacity onPress={addSkill} style={styles.addButton}>
-                      <ThemedText style={styles.addButtonText}>+ Add</ThemedText>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="construct" size={20} color={RED} />
+                      </View>
+                      <ThemedText style={styles.sectionTitle}>Skills</ThemedText>
+                    </View>
+                    <TouchableOpacity onPress={addSkill} style={styles.addButtonMinimal}>
+                      <Ionicons name="add-circle" size={28} color={RED} />
                     </TouchableOpacity>
                   </View>
 
@@ -692,11 +831,16 @@ export default function ResumeFormScreen() {
                 </ThemedView>
 
                 {/* Achievements */}
-                <ThemedView style={styles.section}>
+                <ThemedView style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <ThemedText style={[styles.sectionTitle, styles.achievementTitle]}>Achievements & Certifications</ThemedText>
-                    <TouchableOpacity onPress={addAchievement} style={styles.addButton}>
-                      <ThemedText style={styles.addButtonText}>+ Add</ThemedText>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="trophy" size={20} color={RED} />
+                      </View>
+                      <ThemedText style={styles.sectionTitle}>Achievements</ThemedText>
+                    </View>
+                    <TouchableOpacity onPress={addAchievement} style={styles.addButtonMinimal}>
+                      <Ionicons name="add-circle" size={28} color={RED} />
                     </TouchableOpacity>
                   </View>
 
@@ -780,55 +924,208 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 8,
     color: RED,
-    letterSpacing: 2,
+    marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    opacity: 0.7,
-    marginBottom: 30,
-    color: '#555',
-  },
-  section: {
-    marginBottom: 30,
+  sectionCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 20,
+    marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  sectionIconTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadDataButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(196, 0, 0, 0.2)',
+    borderStyle: 'dashed',
+  },
+  loadDataContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadDataTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#333',
+  },
+  loadDataSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 20,
-    color: RED,
+    color: '#1a1a1a',
   },
-  achievementTitle: {
-    flex: 1,
-    marginRight: 10,
-    marginBottom: 0,
+  addButtonMinimal: {
+    padding: 4,
   },
   subSectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#444',
+  },
+  templatesContainer: {
+    paddingBottom: 40,
+  },
+  templatesHeader: {
+    marginBottom: 24,
+  },
+  templatesTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  templatesSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
+  templateCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#f0f0f0',
+  },
+  templateCardSelected: {
+    borderColor: RED,
+    backgroundColor: 'rgba(196, 0, 0, 0.02)',
+  },
+  templateCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  templateIconTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  templateIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  templateName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  templateCategory: {
+    fontSize: 12,
+    color: '#888',
     fontWeight: '600',
-    color: '#333',
+  },
+  selectedBadge: {
+    marginTop: 4,
+  },
+  templateDescription: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  recommendationReason: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f7ff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 8,
+    marginBottom: 16,
+  },
+  recommendationText: {
+    fontSize: 13,
+    color: '#007AFF',
+    fontWeight: '600',
+    flex: 1,
+  },
+  templateMeta: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 12,
+    color: '#888',
+  },
+  templateActions: {
+    marginTop: 20,
+    gap: 12,
+  },
+  generateButton: {
+    backgroundColor: RED,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    borderRadius: 16,
+    gap: 10,
+    shadowColor: RED,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  generateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  backToFormButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  backToFormText: {
+    color: '#666',
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   inputContainer: {
     marginBottom: 15,

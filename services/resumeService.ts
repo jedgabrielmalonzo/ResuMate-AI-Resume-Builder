@@ -18,6 +18,7 @@ export interface SavedResume {
     title: string;
     templateId: string;
     resumeData: GeneratedResumeData;
+    userData?: any; // Add raw user data for auto-fill
     createdAt: any;
 }
 
@@ -27,7 +28,7 @@ export const resumeService = {
     /**
      * Save a generated resume to Firestore
      */
-    async saveResume(userId: string, resumeData: GeneratedResumeData, templateId: string) {
+    async saveResume(userId: string, resumeData: GeneratedResumeData, templateId: string, userData?: any) {
         try {
             // Create a default title if none exists
             const title = `${resumeData.sections?.[0]?.content?.split('\n')?.[0] || 'My'} Resume`;
@@ -37,6 +38,7 @@ export const resumeService = {
                 title,
                 templateId,
                 resumeData,
+                userData, // Save raw inputs
                 createdAt: serverTimestamp(),
             });
             return docRef.id;

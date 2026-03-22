@@ -11,6 +11,8 @@ const TEMPLATE_COLORS: Record<string, { accent: string; text: string }> = {
   hybrid: { accent: '#1565c0', text: '#ffffff' },
   mini: { accent: '#ef6c00', text: '#ffffff' },
   'student-entry': { accent: '#00897b', text: '#ffffff' },
+  creative: { accent: '#FF4081', text: '#ffffff' },
+  executive: { accent: '#1A237E', text: '#ffffff' },
 };
 
 const DOWNLOADS_URI_KEY = '@resumate_downloads_directory_uri';

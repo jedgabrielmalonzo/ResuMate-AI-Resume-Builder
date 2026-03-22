@@ -7,7 +7,9 @@ export interface ResumeTemplate {
     | 'functional'
     | 'hybrid'
     | 'mini'
-    | 'student-entry';
+    | 'student-entry'
+    | 'creative'
+    | 'executive';
   description: string;
   sections: string[];
   bestFor: string;
@@ -130,6 +132,50 @@ export const resumeTemplates: ResumeTemplate[] = [
     tips: [
       'Highlight class projects with tools used and measurable outcomes.',
       'Include leadership, organization roles, and volunteer impact.',
+    ],
+  },
+  {
+    id: 'creative',
+    name: 'Creative Portfolio',
+    category: 'Design & Arts',
+    formatType: 'hybrid',
+    description:
+      'A visually engaging format that emphasizes projects, creative skills, and a unique professional identity.',
+    sections: [
+      'Contact Information',
+      'Creative Profile',
+      'Portfolio Highlights',
+      'Professional Journey',
+      'Technical Skills',
+      'Education',
+    ],
+    bestFor: 'Designers, marketers, content creators, and those in artistic or innovative fields.',
+    jobFields: ['Graphic Design', 'Marketing', 'Content Creation', 'UI/UX', 'Advertising'],
+    tips: [
+      'Use action-oriented language for project descriptions.',
+      'Highlight the tools and technologies used in each creative piece.',
+    ],
+  },
+  {
+    id: 'executive',
+    name: 'Executive Leadership',
+    category: 'Management',
+    formatType: 'chronological',
+    description:
+      'A sophisticated, high-impact format focused on leadership philosophy, strategic achievements, and board-ready outcomes.',
+    sections: [
+      'Contact Information',
+      'Executive Summary',
+      'Senior Leadership Experience',
+      'Core Competencies',
+      'Board & Advisory Roles',
+      'Education & Executive Training',
+    ],
+    bestFor: 'Managers, Directors, VP-level, and C-suite professionals.',
+    jobFields: ['General Management', 'Strategy', 'Finance', 'Technology Leadership', 'Operations'],
+    tips: [
+      'Focus on high-level ROI and strategic impact rather than daily tasks.',
+      'Quantify the scale of teams, budgets, and business transformations led.',
     ],
   },
 ];

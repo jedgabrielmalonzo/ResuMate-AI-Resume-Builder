@@ -13,6 +13,8 @@ const TEMPLATE_STYLES: Record<string, { accent: string; headerText: string }> = 
   hybrid: { accent: '#1565c0', headerText: '#ffffff' },
   mini: { accent: '#ef6c00', headerText: '#ffffff' },
   'student-entry': { accent: '#00897b', headerText: '#ffffff' },
+  creative: { accent: '#FF4081', headerText: '#ffffff' },
+  executive: { accent: '#1A237E', headerText: '#ffffff' },
 };
 
 export default function ResumeDocument({ data, templateId }: Props) {
