@@ -23,7 +23,7 @@ const discovery: AuthSession.DiscoveryDocument = {
 
 // Native Client IDs
 const GOOGLE_ANDROID_CLIENT_ID = '830045302104-bqi1ceklg5tvogvekidr172lp03vln7m.apps.googleusercontent.com';
-const GOOGLE_IOS_CLIENT_ID = '830045302104-1d0ogdi83l2sfb1avr98brmd73ibb1bh.apps.googleusercontent.com';
+const GOOGLE_IOS_CLIENT_ID = '830045302104-i9s1onjt33mrtcn5dhh8a515d2jfck9n.apps.googleusercontent.com';
 
 /**
  * Hook to handle Google Sign-In using Authorization Code flow.
@@ -31,23 +31,19 @@ const GOOGLE_IOS_CLIENT_ID = '830045302104-1d0ogdi83l2sfb1avr98brmd73ibb1bh.apps
 export function useGoogleAuth() {
   const { signInWithGoogle } = useAuth();
 
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'resumate',
-    path: 'oauthredirect',
-  });
+  // For Expo Go, we must use the Auth Session proxy.
+  // This URL is tied to your Expo account for development.
+  const redirectUri = 'https://auth.expo.io/@jedmalonzo/resumate';
 
-  // Log on first use so user can add this to Google Console
+  // Log for verification
   useEffect(() => {
-    console.log('🔑 Google OAuth Redirect URI (add this to Google Console):', redirectUri);
+    console.log('🔑 New Redirect URI (Add to Google Console Web Client):', redirectUri);
   }, [redirectUri]);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
-      clientId: Platform.select({
-        android: GOOGLE_ANDROID_CLIENT_ID,
-        ios: GOOGLE_IOS_CLIENT_ID,
-        default: GOOGLE_WEB_CLIENT_ID,
-      }),
+      // When using the proxy, we MUST use the Web Client ID
+      clientId: GOOGLE_WEB_CLIENT_ID,
       scopes: ['openid', 'profile', 'email'],
       redirectUri,
       responseType: AuthSession.ResponseType.Code,
