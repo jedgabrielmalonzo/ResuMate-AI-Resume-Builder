@@ -54,7 +54,7 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
           {
             backgroundColor: bgOpacity.interpolate({
               inputRange: [0, 1],
-              outputRange: ["transparent", ACTIVE_DOT],
+              outputRange: ["rgba(196, 0, 0, 0)", ACTIVE_DOT],
             }),
           },
         ]}

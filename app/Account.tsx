@@ -3,6 +3,7 @@ import BottomNav from "@/components/ui/BottomNav";
 import { useAuth } from "@/context/AuthContext";
 import { useResumeContext } from "@/context/ResumeContext";
 import { resumeService, SavedResume } from "@/services/resumeService";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -18,7 +19,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const RED = "#c40000";
-const RED_LIGHT = "#fff0f0";
+const OFF_WHITE = "#f8f9fa";
+const BORDER_COLOR = "#e9ecef";
 
 function Initials({
   name,
@@ -116,26 +118,30 @@ export default function Account() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="light-content" backgroundColor={RED} />
+      <StatusBar barStyle="dark-content" />
 
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-        <BackButton />
-      </View>
-
-      {/* Hero Header */}
+      {/* Modern Header - White themed */}
       <View style={styles.header}>
-        <Initials name={user?.displayName} email={user?.email} />
+        <View style={styles.headerTop}>
+          <BackButton />
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutIconBtn}>
+             <Ionicons name="log-out-outline" size={24} color="#6c757d" />
+          </TouchableOpacity>
+        </View>
 
-        <View style={styles.userInfo}>
-          <Text style={styles.userName} numberOfLines={1}>
-            {user?.displayName || "User"}
-          </Text>
-          <Text style={styles.userEmail} numberOfLines={1}>
-            {user?.email}
-          </Text>
-          <View style={styles.memberBadge}>
-            <Text style={styles.memberBadgeText}>✦ ResuMate Member</Text>
+        <View style={styles.profileSection}>
+          <Initials name={user?.displayName} email={user?.email} />
+          <View style={styles.userInfo}>
+            <Text style={styles.userName} numberOfLines={1}>
+              {user?.displayName || "User"}
+            </Text>
+            <Text style={styles.userEmail} numberOfLines={1}>
+              {user?.email}
+            </Text>
+            <View style={styles.memberBadge}>
+              <Ionicons name="sparkles" size={10} color={RED} style={{ marginRight: 4 }} />
+              <Text style={styles.memberBadgeText}>RESUMATE MEMBER</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -145,19 +151,17 @@ export default function Account() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Stats Row */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
+        {/* Stats Grid */}
+        <View style={styles.statsGrid}>
+          <View style={styles.statBox}>
             <Text style={styles.statNumber}>{resumes.length}</Text>
-            <Text style={styles.statLabel}>Resumes</Text>
+            <Text style={styles.statLabel}>Resume</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <View style={styles.statBox}>
             <Text style={styles.statNumber}>{resumes.length}</Text>
             <Text style={styles.statLabel}>Completed</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <View style={[styles.statBox, { borderRightWidth: 0 }]}>
             <Text style={styles.statNumber}>0</Text>
             <Text style={styles.statLabel}>Drafts</Text>
           </View>
@@ -168,11 +172,12 @@ export default function Account() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Resumes</Text>
             <TouchableOpacity
-              style={styles.newResumeChip}
+              style={styles.newResumeBtn}
               onPress={() => router.push("/resume/form")}
               activeOpacity={0.7}
             >
-              <Text style={styles.newResumeChipText}>+ New</Text>
+              <Ionicons name="add" size={20} color={RED} />
+              <Text style={styles.newResumeBtnText}>New</Text>
             </TouchableOpacity>
           </View>
 
@@ -184,7 +189,9 @@ export default function Account() {
             />
           ) : resumes.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyIcon}>📝</Text>
+              <View style={styles.emptyIconWrap}>
+                <Ionicons name="document-text-outline" size={40} color="#adb5bd" />
+              </View>
               <Text style={styles.emptyTitle}>No resumes yet</Text>
               <Text style={styles.emptySubtitle}>
                 Build your first AI-powered resume to get started!
@@ -206,10 +213,10 @@ export default function Account() {
                 activeOpacity={0.75}
               >
                 <View style={styles.resumeIconWrap}>
-                  <Text style={styles.resumeIconText}>📄</Text>
+                  <Ionicons name="document" size={24} color={RED} />
                 </View>
                 <View style={styles.resumeInfo}>
-                  <Text style={styles.resumeTitle} numberOfLines={2}>
+                  <Text style={styles.resumeTitle} numberOfLines={1}>
                     {resume.title}
                   </Text>
                   <Text style={styles.resumeDate}>
@@ -221,31 +228,24 @@ export default function Account() {
                         })
                       : "Just now"}
                   </Text>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>✓ Completed</Text>
+                  <View style={styles.statusRow}>
+                    <View style={styles.statusDot} />
+                    <Text style={styles.statusText}>Completed</Text>
                   </View>
                 </View>
                 <TouchableOpacity
                   onPress={() => handleDeleteResume(resume.id)}
                   style={styles.deleteBtn}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Text style={styles.deleteIcon}>🗑️</Text>
+                  <Ionicons name="trash-outline" size={18} color="#adb5bd" />
                 </TouchableOpacity>
-                <Text style={styles.chevron}>›</Text>
+                <Ionicons name="chevron-forward" size={20} color="#dee2e6" />
               </TouchableOpacity>
             ))
           )}
         </View>
 
-        {/* Sign Out */}
-        <TouchableOpacity
-          style={styles.signOutBtn}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* Bottom Nav */}
@@ -257,101 +257,119 @@ export default function Account() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f6fa",
+    backgroundColor: OFF_WHITE,
   },
 
   // Header
   header: {
-    backgroundColor: RED,
+    backgroundColor: "white",
     paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 28,
+    paddingTop: 10,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutIconBtn: {
+    padding: 4,
+  },
+  profileSection: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    borderWidth: 2.5,
-    borderColor: "rgba(255,255,255,0.5)",
+    width: 80,
+    height: 80,
+    borderRadius: 28,
+    backgroundColor: "#fff5f5",
+    borderWidth: 1,
+    borderColor: "#ffe3e3",
     justifyContent: "center",
     alignItems: "center",
   },
   avatarText: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "800",
-    color: "#fff",
+    color: RED,
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
-    color: "#fff",
+    color: "#1a1a2e",
     marginBottom: 2,
   },
   userEmail: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.78)",
+    color: "#6c757d",
     marginBottom: 8,
   },
   memberBadge: {
+    flexDirection: 'row',
+    alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 20,
+    backgroundColor: "#fff5f5",
+    borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingVertical: 4,
   },
   memberBadgeText: {
-    fontSize: 11,
-    color: "#fff",
-    fontWeight: "600",
+    fontSize: 10,
+    color: RED,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
 
-  // Stats
-  statsCard: {
+  // Stats Grid
+  statsGrid: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 16,
+    backgroundColor: "white",
+    borderRadius: 24,
     paddingVertical: 20,
-    paddingHorizontal: 10,
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: 24,
+    marginBottom: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
   },
-  statItem: {
+  statBox: {
     flex: 1,
     alignItems: "center",
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: "#eee",
+    borderRightWidth: 1,
+    borderRightColor: "#f1f3f5",
   },
   statNumber: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "800",
-    color: RED,
-    marginBottom: 3,
+    color: "#1a1a2e",
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 12,
-    color: "#888",
-    fontWeight: "500",
+    color: "#adb5bd",
+    fontWeight: "600",
   },
 
   // Section
   scroll: { flex: 1 },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingHorizontal: 24,
+    paddingBottom: 110,
   },
   section: {
     marginBottom: 20,
@@ -360,138 +378,129 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: "#1a1a2e",
   },
-  newResumeChip: {
-    backgroundColor: RED_LIGHT,
-    paddingHorizontal: 14,
+  newResumeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "white",
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#ffd0d0",
+    borderColor: BORDER_COLOR,
   },
-  newResumeChipText: {
-    fontSize: 13,
+  newResumeBtnText: {
+    fontSize: 14,
     color: RED,
     fontWeight: "700",
+    marginLeft: 2,
   },
 
   // Resume cards
   resumeCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: "white",
+    borderRadius: 24,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1,
   },
   resumeIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: RED_LIGHT,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "#fff5f5",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
-  resumeIconText: { fontSize: 22 },
   resumeInfo: { flex: 1 },
   resumeTitle: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
     color: "#1a1a2e",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   resumeDate: {
-    fontSize: 11,
-    color: "#999",
+    fontSize: 12,
+    color: "#adb5bd",
     marginBottom: 6,
   },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#e8f8f0",
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  badgeText: {
-    fontSize: 10,
-    color: "#1a8a50",
-    fontWeight: "700",
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#2dc937", // Green for completed
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 11,
+    color: "#495057",
+    fontWeight: "600",
   },
   deleteBtn: {
-    padding: 6,
-    marginRight: 2,
-  },
-  deleteIcon: { fontSize: 16, opacity: 0.55 },
-  chevron: {
-    fontSize: 22,
-    color: "#ccc",
-    marginLeft: 2,
+    padding: 8,
+    marginRight: 4,
   },
 
   // Empty state
   emptyCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 30,
+    backgroundColor: "white",
+    borderRadius: 24,
+    padding: 40,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
   },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 30,
+    backgroundColor: "#f8f9fa",
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   emptyTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "800",
     color: "#1a1a2e",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 13,
-    color: "#888",
+    fontSize: 14,
+    color: "#6c757d",
     textAlign: "center",
-    lineHeight: 19,
-    marginBottom: 20,
+    lineHeight: 22,
+    marginBottom: 28,
   },
   buildBtn: {
     backgroundColor: RED,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: RED,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buildBtnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  // Sign out
-  signOutBtn: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#ffd0d0",
-    marginTop: 4,
-    marginBottom: 10,
-  },
-  signOutText: {
-    color: RED,
+    color: "white",
+    fontWeight: "800",
     fontSize: 15,
-    fontWeight: "700",
   },
 });

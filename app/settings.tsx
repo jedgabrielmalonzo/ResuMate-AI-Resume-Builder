@@ -1,5 +1,4 @@
 import BottomNav from "@/components/ui/BottomNav";
-import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
@@ -16,18 +15,29 @@ import {
 } from "react-native";
 
 const RED = "#c40000";
+const OFF_WHITE = "#f8f9fa";
+const BORDER_COLOR = "#e9ecef";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { logout, user } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      router.replace("/auth/login");
-    } catch (error) {
-      Alert.alert("Error", "Failed to sign out. Please try again.");
-    }
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+            router.replace("/auth/login");
+          } catch {
+            Alert.alert("Error", "Failed to sign out. Please try again.");
+          }
+        },
+      },
+    ]);
   };
 
   const SettingItem = ({
@@ -35,13 +45,19 @@ export default function SettingsScreen() {
     label,
     onPress,
     value,
+    isLast = false,
   }: {
     icon: string;
     label: string;
     onPress: () => void;
     value?: string;
+    isLast?: boolean;
   }) => (
-    <TouchableOpacity style={styles.settingItem} onPress={onPress}>
+    <TouchableOpacity 
+      style={[styles.settingItem, isLast && { borderBottomWidth: 0 }]} 
+      onPress={onPress}
+      activeOpacity={0.6}
+    >
       <View style={styles.settingLeft}>
         <View style={styles.iconContainer}>
           <Ionicons name={icon as any} size={20} color={RED} />
@@ -50,13 +66,18 @@ export default function SettingsScreen() {
       </View>
       <View style={styles.settingRight}>
         {value && <Text style={styles.settingValue}>{value}</Text>}
-        <Ionicons name="chevron-forward" size={18} color="#adb5bd" />
+        <Ionicons name="chevron-forward" size={18} color="#dee2e6" />
       </View>
     </TouchableOpacity>
   );
 
-  const SectionTitle = ({ title }: { title: string }) => (
-    <Text style={styles.sectionTitle}>{title}</Text>
+  const Section = ({ title, children }: { title: string; children?: React.ReactNode }) => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionCard}>
+        {children}
+      </View>
+    </View>
   );
 
   return (
@@ -64,14 +85,19 @@ export default function SettingsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.headerPadding}>
-        <ScreenHeader title="Settings" />
+      {/* Modern Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Settings</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Summary */}
-        <View style={styles.profileSummary}>
-          <View style={styles.avatarContainer}>
+        {/* Profile Summary Card */}
+        <TouchableOpacity 
+          style={styles.profileCard}
+          onPress={() => router.push("/Account")}
+          activeOpacity={0.9}
+        >
+          <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {user?.displayName
                 ? user.displayName
@@ -87,11 +113,11 @@ export default function SettingsScreen() {
             </Text>
             <Text style={styles.profileEmail}>{user?.email}</Text>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={20} color="#dee2e6" />
+        </TouchableOpacity>
 
         {/* Preferences Section */}
-        <View style={styles.section}>
-          <SectionTitle title="Preferences" />
+        <Section title="Preferences">
           <SettingItem
             icon="color-palette-outline"
             label="Theme"
@@ -109,13 +135,13 @@ export default function SettingsScreen() {
             icon="language-outline"
             label="Language"
             value="English"
+            isLast={true}
             onPress={() => {}}
           />
-        </View>
+        </Section>
 
         {/* Support Section */}
-        <View style={styles.section}>
-          <SectionTitle title="Support & Info" />
+        <Section title="Support & Info">
           <SettingItem
             icon="shield-checkmark-outline"
             label="Privacy Policy"
@@ -130,20 +156,20 @@ export default function SettingsScreen() {
             icon="information-circle-outline"
             label="About Resumate"
             value="v1.0.0"
+            isLast={true}
             onPress={() => {}}
           />
-        </View>
+        </Section>
 
-        {/* Danger Zone */}
-        <View style={styles.section}>
-          <SectionTitle title="Account" />
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#fff" />
-            <Text style={styles.logoutText}>Log Out</Text>
+        {/* Account Actions */}
+        <View style={styles.accountActions}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
+            <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
+          <Text style={styles.versionText}>Made with ❤️ for your career</Text>
         </View>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
       <BottomNav />
@@ -154,79 +180,93 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: OFF_WHITE,
   },
-  headerPadding: {
-    paddingHorizontal: 20,
+  header: {
+    paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 10,
-    backgroundColor: "white",
+    paddingBottom: 15,
+    backgroundColor: OFF_WHITE,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#1a1a2e",
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  profileSummary: {
+  profileCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "white",
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 24,
     marginTop: 10,
-    marginBottom: 20,
-    elevation: 2,
+    marginBottom: 28,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
     shadowRadius: 10,
+    elevation: 2,
   },
-  avatarContainer: {
+  avatar: {
     width: 60,
     height: 60,
-    borderRadius: 30,
-    backgroundColor: RED,
+    borderRadius: 20,
+    backgroundColor: '#fff5f5',
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 15,
+    marginRight: 16,
   },
   avatarText: {
-    color: "white",
+    color: RED,
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: "800",
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#212529",
+    fontWeight: "800",
+    color: "#1a1a2e",
   },
   profileEmail: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#6c757d",
     marginTop: 2,
   },
   section: {
-    marginBottom: 25,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#adb5bd",
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 10,
-    marginLeft: 5,
+    letterSpacing: 1.2,
+    marginBottom: 12,
+    marginLeft: 8,
+  },
+  sectionCard: {
+    backgroundColor: "white",
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 1,
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "white",
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f8f9fa",
   },
   settingLeft: {
     flexDirection: "row",
@@ -235,16 +275,16 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: "#fff5f5",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   settingLabel: {
-    fontSize: 16,
-    color: "#343a40",
-    fontWeight: "500",
+    fontSize: 15,
+    color: "#1a1a2e",
+    fontWeight: "600",
   },
   settingRight: {
     flexDirection: "row",
@@ -252,22 +292,33 @@ const styles = StyleSheet.create({
   },
   settingValue: {
     fontSize: 14,
-    color: "#6c757d",
+    color: "#adb5bd",
     marginRight: 8,
+    fontWeight: "500",
+  },
+  accountActions: {
+    marginTop: 10,
+    alignItems: 'center',
+    gap: 15,
   },
   logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#dc3545",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 5,
-    gap: 10,
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ffe3e3',
   },
   logoutText: {
-    color: "white",
+    color: RED,
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
+  },
+  versionText: {
+    fontSize: 12,
+    color: "#adb5bd",
+    fontWeight: "500",
   },
 });

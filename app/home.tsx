@@ -1,5 +1,6 @@
 import ChatbotModal from "@/components/ChatbotModal";
 import BottomNav from "@/components/ui/BottomNav";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -13,6 +14,7 @@ import {
 } from "react-native";
 
 const RED = "#c40000";
+const LIGHT_GRAY = "#d3d2d2ff";
 
 export default function Home() {
   const router = useRouter();
@@ -27,13 +29,13 @@ export default function Home() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(float1, {
-          toValue: -30,
-          duration: 1000,
+          toValue: -15,
+          duration: 2000,
           useNativeDriver: true,
         }),
         Animated.timing(float1, {
           toValue: 0,
-          duration: 3200,
+          duration: 2000,
           useNativeDriver: true,
         }),
       ]),
@@ -42,13 +44,13 @@ export default function Home() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(float2, {
-          toValue: 18,
-          duration: 3800,
+          toValue: 10,
+          duration: 2500,
           useNativeDriver: true,
         }),
         Animated.timing(float2, {
           toValue: 0,
-          duration: 3800,
+          duration: 2500,
           useNativeDriver: true,
         }),
       ]),
@@ -57,12 +59,12 @@ export default function Home() {
     Animated.parallel([
       Animated.timing(fade, {
         toValue: 1,
-        duration: 1200,
+        duration: 800,
         useNativeDriver: true,
       }),
       Animated.timing(slide, {
         toValue: 0,
-        duration: 1200,
+        duration: 800,
         useNativeDriver: true,
       }),
     ]).start();
@@ -80,7 +82,7 @@ export default function Home() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Floating background shapes */}
+      {/* Floating background shapes - more subtle */}
       <Animated.View
         style={[styles.bgTop, { transform: [{ translateY: float1 }] }]}
       />
@@ -88,61 +90,78 @@ export default function Home() {
         style={[styles.bgBottom, { transform: [{ translateY: float2 }] }]}
       />
 
-      {/* Main Content */}
-      <Animated.View
-        style={[
-          styles.content,
-          {
-            opacity: fade,
-            transform: [{ translateY: slide }],
-          },
-        ]}
-      >
-        <View style={styles.logoBox}>
+      {/* Modern Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
           <Image
             source={require("../assets/images/newlogo.png")}
-            style={styles.logoImage}
+            style={styles.headerLogo}
             resizeMode="contain"
           />
+          <Text style={styles.headerTitle}>RESUMATE</Text>
         </View>
+      </View>
 
-        <Text style={styles.logoText}>RESUMATE</Text>
+      {/* Main Content */}
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View
+          style={[
+            styles.heroSection,
+            {
+              opacity: fade,
+              transform: [{ translateY: slide }],
+            },
+          ]}
+        >
+          <Text style={styles.greetingTitle}>Build your future</Text>
+          <Text style={styles.description}>
+            Your intelligent AI companion for finding and securing your dream career.
+          </Text>
 
-        <Text style={styles.description}>
-          Your intelligent companion for finding{"\n"}
-          and securing your dream career.
-        </Text>
+          {/* Action Cards */}
+          <View style={styles.cardsGrid}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={handleBuildResume}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconCircle}>
+                <Ionicons name="document-text" size={32} color={RED} />
+              </View>
+              <Text style={styles.cardTitle}>Build my resume</Text>
+              <Text style={styles.cardSubtitle}>AI-powered templates</Text>
+              <Ionicons name="arrow-forward" size={18} color={RED} style={styles.cardArrow} />
+            </TouchableOpacity>
 
-        {/* Action Buttons - Horizontal Layout */}
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleBuildResume}
-          >
-            <Text style={styles.actionIcon}>📄</Text>
-            <Text style={styles.actionButtonText}>Build my{"\n"}resume</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={handleInterviewPrep}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#fff5f5' }]}>
+                <Ionicons name="briefcase" size={32} color={RED} />
+              </View>
+              <Text style={styles.cardTitle}>Interview prep</Text>
+              <Text style={styles.cardSubtitle}>Practice with AI</Text>
+              <Ionicons name="arrow-forward" size={18} color={RED} style={styles.cardArrow} />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </ScrollView>
 
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleInterviewPrep}
-          >
-            <Text style={styles.actionIcon}>💼</Text>
-            <Text style={styles.actionButtonText}>Interview{"\n"}prep</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation (handled by the app_layout or direct import) */}
       <BottomNav />
 
-      {/* Floating Chatbot Button */}
+      {/* Floating Chatbot Button - matches BottomNav theme */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => setChatOpen(true)}
         activeOpacity={0.85}
       >
-        <Text style={styles.fabIcon}>💬</Text>
+        <Ionicons name="chatbubble-ellipses" size={28} color="white" />
       </TouchableOpacity>
 
       {/* Chatbot Modal */}
@@ -151,118 +170,128 @@ export default function Home() {
   );
 }
 
+// Support ScrollView in Home
+import { ScrollView } from "react-native-gesture-handler";
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8f9fa",
   },
-
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+    paddingBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  headerLogo: {
+    width: 32,
+    height: 32,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: RED,
+    letterSpacing: 2,
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  heroSection: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  greetingTitle: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#1a1a2e",
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 15,
+    color: "#6c757d",
+    lineHeight: 22,
+    marginBottom: 35,
+  },
+  cardsGrid: {
+    gap: 16,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: '#fff5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a2e",
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: "#adb5bd",
+  },
+  cardArrow: {
+    position: 'absolute',
+    right: 24,
+    bottom: 24,
+    opacity: 0.6,
+  },
   bgTop: {
     position: "absolute",
-    top: -140,
-    right: -140,
+    top: -100,
+    right: -100,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: "#ffecec",
+    opacity: 0.5,
+  },
+  bgBottom: {
+    position: "absolute",
+    bottom: -150,
+    left: -100,
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: "#ffecec",
+    backgroundColor: "#f1f3f5",
+    opacity: 0.6,
   },
-
-  bgBottom: {
-    position: "absolute",
-    bottom: -160,
-    left: -160,
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-    backgroundColor: "#fff2f2",
-  },
-
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingBottom: 100, // Space for bottom navigation
-  },
-
-  logoBox: {
-    marginBottom: 2,
-  },
-
-  logoImage: {
-    width: 200,
-    height: 200,
-  },
-
-  logoText: {
-    fontSize: 42,
-    fontWeight: "900",
-    color: RED,
-    letterSpacing: 4,
-    marginBottom: 10,
-  },
-
-  description: {
-    fontSize: 14,
-    color: "#555",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 40,
-  },
-
-  actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-
-  actionButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 30,
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    width: "45%",
-    minHeight: 140,
-  },
-
-  actionIcon: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: RED,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-
-  // Floating Action Button (chatbot)
   fab: {
     position: "absolute",
-    bottom: 120,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: 110,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: RED,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: RED,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  fabIcon: {
-    fontSize: 26,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
 });
