@@ -1,22 +1,22 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { ChatMessage, sendChatMessage } from "@/services/chatService";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  ActivityIndicator,
-  SafeAreaView,
-} from 'react-native';
-import Markdown from 'react-native-markdown-display';
-import { sendChatMessage, ChatMessage } from '@/services/chatService';
+    ActivityIndicator,
+    Animated,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import Markdown from "react-native-markdown-display";
 
-const RED = '#c40000';
+const RED = "#c40000";
 
 interface Props {
   visible: boolean;
@@ -36,10 +36,18 @@ function TypingIndicator() {
       Animated.loop(
         Animated.sequence([
           Animated.delay(i * 150),
-          Animated.timing(dot, { toValue: -6, duration: 300, useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
-        ])
-      )
+          Animated.timing(dot, {
+            toValue: -6,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]),
+      ),
     );
     anims.forEach((a) => a.start());
     return () => anims.forEach((a) => a.stop());
@@ -63,27 +71,31 @@ function TypingIndicator() {
 }
 
 function MessageBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === 'user';
+  const isUser = message.role === "user";
   return (
-    <View style={[styles.messageRow, isUser ? styles.messageRowUser : styles.messageRowBot]}>
+    <View
+      style={[
+        styles.messageRow,
+        isUser ? styles.messageRowUser : styles.messageRowBot,
+      ]}
+    >
       {!isUser && (
         <View style={styles.botAvatarSmall}>
           <Text style={styles.botAvatarText}>🤖</Text>
         </View>
       )}
       <View
-        style={[
-          styles.bubble,
-          isUser ? styles.userBubble : styles.botBubble,
-        ]}
+        style={[styles.bubble, isUser ? styles.userBubble : styles.botBubble]}
       >
-        <Markdown style={{
-          body: {
-            ...StyleSheet.flatten(styles.bubbleText),
-            ...(isUser ? styles.userText : styles.botText)
-          },
-          paragraph: { marginTop: 0, marginBottom: 0 }
-        }}>
+        <Markdown
+          style={{
+            body: {
+              ...StyleSheet.flatten(styles.bubbleText),
+              ...(isUser ? styles.userText : styles.botText),
+            },
+            paragraph: { marginTop: 0, marginBottom: 0 },
+          }}
+        >
           {message.text}
         </Markdown>
       </View>
@@ -92,14 +104,14 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
-  id: 'welcome',
-  role: 'model',
+  id: "welcome",
+  role: "model",
   text: "Hi! I'm **ResumAI** 👋\n\nI can help you with:\n• 🚀 Career roadmaps & what to put on your resume\n• ❓ How to use the ResuMate app\n\nWhat would you like to know?",
 };
 
 export default function ChatbotModal({ visible, onClose }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const listRef = useRef<FlatList>(null);
 
@@ -115,7 +127,7 @@ export default function ChatbotModal({ visible, onClose }: Props) {
   useEffect(() => {
     if (visible) {
       setMessages([WELCOME_MESSAGE]);
-      setInput('');
+      setInput("");
       setIsTyping(false);
     }
   }, [visible]);
@@ -126,22 +138,22 @@ export default function ChatbotModal({ visible, onClose }: Props) {
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
-      role: 'user',
+      role: "user",
       text,
     };
 
-    setInput('');
+    setInput("");
     setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
 
     try {
       // Build history to send (exclude welcome, which is UI-only)
-      const history = messages.filter((m) => m.id !== 'welcome');
+      const history = messages.filter((m) => m.id !== "welcome");
       const responseText = await sendChatMessage(history, text);
 
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        role: 'model',
+        role: "model",
         text: responseText,
       };
       setMessages((prev) => [...prev, botMsg]);
@@ -150,8 +162,8 @@ export default function ChatbotModal({ visible, onClose }: Props) {
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          role: 'model',
-          text: 'Sorry, something went wrong. Please check your connection and try again.',
+          role: "model",
+          text: "Sorry, something went wrong. Please check your connection and try again.",
         },
       ]);
     } finally {
@@ -160,7 +172,12 @@ export default function ChatbotModal({ visible, onClose }: Props) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={onClose}
+    >
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
@@ -173,7 +190,11 @@ export default function ChatbotModal({ visible, onClose }: Props) {
               <Text style={styles.headerSubtitle}>Your career assistant</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
             <Text style={styles.closeIcon}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -181,7 +202,7 @@ export default function ChatbotModal({ visible, onClose }: Props) {
         {/* Messages */}
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={0}
         >
           <FlatList
@@ -208,7 +229,10 @@ export default function ChatbotModal({ visible, onClose }: Props) {
               onSubmitEditing={handleSend}
             />
             <TouchableOpacity
-              style={[styles.sendBtn, (!input.trim() || isTyping) && styles.sendBtnDisabled]}
+              style={[
+                styles.sendBtn,
+                (!input.trim() || isTyping) && styles.sendBtnDisabled,
+              ]}
               onPress={handleSend}
               disabled={!input.trim() || isTyping}
               activeOpacity={0.8}
@@ -227,7 +251,7 @@ export default function ChatbotModal({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5f6fa' },
+  safeArea: { flex: 1, backgroundColor: "#f5f6fa" },
   flex: { flex: 1 },
 
   // Header
@@ -235,9 +259,9 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
     paddingHorizontal: 18,
     paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     shadowColor: RED,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -245,40 +269,40 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   botAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: "rgba(255,255,255,0.4)",
   },
   botAvatarLg: { fontSize: 22 },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
   },
   headerSubtitle: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
+    color: "rgba(255,255,255,0.75)",
     marginTop: 1,
   },
   closeBtn: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  closeIcon: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  closeIcon: { color: "#fff", fontSize: 16, fontWeight: "700" },
 
   // Messages
   messageList: {
@@ -287,28 +311,28 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   messageRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     marginBottom: 8,
   },
-  messageRowUser: { justifyContent: 'flex-end' },
-  messageRowBot: { justifyContent: 'flex-start' },
+  messageRowUser: { justifyContent: "flex-end" },
+  messageRowBot: { justifyContent: "flex-start" },
 
   botAvatarSmall: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#fff0f0',
+    backgroundColor: "#fff0f0",
     borderWidth: 1,
-    borderColor: '#ffd0d0',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#ffd0d0",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
   },
   botAvatarText: { fontSize: 15 },
 
   bubble: {
-    maxWidth: '75%',
+    maxWidth: "75%",
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 18,
@@ -318,68 +342,68 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   botBubble: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#eee',
-    shadowColor: '#000',
+    borderColor: "#eee",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
   },
   bubbleText: { fontSize: 14, lineHeight: 20 },
-  userText: { color: '#fff' },
-  botText: { color: '#222' },
+  userText: { color: "#fff" },
+  botText: { color: "#222" },
 
   // Typing
   typingWrap: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     marginBottom: 8,
     paddingHorizontal: 16,
   },
   typingBubble: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    backgroundColor: "#fff",
     borderRadius: 18,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   typingDot: {
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#bbb',
+    backgroundColor: "#bbb",
   },
 
   // Input bar
   inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: 14,
     paddingVertical: 10,
     paddingBottom: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: "#eee",
     gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f6fa',
+    backgroundColor: "#f5f6fa",
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#222',
+    color: "#222",
     borderWidth: 1,
-    borderColor: '#e8e8e8',
+    borderColor: "#e8e8e8",
     maxHeight: 100,
   },
   sendBtn: {
@@ -387,8 +411,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: RED,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: RED,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
@@ -396,9 +420,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   sendBtnDisabled: {
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     shadowOpacity: 0,
     elevation: 0,
   },
-  sendIcon: { color: '#fff', fontSize: 18, marginLeft: 2 },
+  sendIcon: { color: "#fff", fontSize: 18, marginLeft: 2 },
 });
