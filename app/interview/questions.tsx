@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  View,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { InterviewQuestion, JobDetails } from '@/services/interviewAI';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import ScreenHeader from '@/components/ui/ScreenHeader';
 
 const RED = '#c40000';
 
@@ -30,7 +34,6 @@ export default function InterviewQuestionsScreen() {
           const parsedQuestions = JSON.parse(params.questions as string);
           const parsedJobDetails = JSON.parse(params.jobDetails as string);
           
-          // Validate data before setting state
           if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
             setQuestions(parsedQuestions);
             setJobDetails(parsedJobDetails);
@@ -52,41 +55,31 @@ export default function InterviewQuestionsScreen() {
     loadData();
   }, [params.questions, params.jobDetails]);
 
-  // Handle error state
-  if (error) {
+  if (error || isLoading || questions.length === 0 || !jobDetails) {
     return (
-      <View style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <Text style={{ fontSize: 18, color: '#666', textAlign: 'center' }}>
-            {error}
-          </Text>
-          <TouchableOpacity 
-            style={{ marginTop: 20, padding: 12, backgroundColor: '#c40000', borderRadius: 8 }}
-            onPress={() => router.back()}
-          >
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Go Back</Text>
-          </TouchableOpacity>
+      <ThemedView style={styles.container}>
+        <View style={styles.centeredContent}>
+          {isLoading ? (
+            <>
+              <ActivityIndicator size="large" color={RED} />
+              <ThemedText style={styles.loadingText}>Preparing questions...</ThemedText>
+            </>
+          ) : (
+            <>
+              <Ionicons name="alert-circle" size={48} color="#ccc" />
+              <ThemedText style={styles.errorText}>{error || 'Something went wrong'}</ThemedText>
+              <TouchableOpacity style={styles.errorButton} onPress={() => router.back()}>
+                <ThemedText style={styles.errorButtonText}>Go Back</ThemedText>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
-      </View>
-    );
-  }
-
-  // Handle loading state
-  if (isLoading || questions.length === 0 || !jobDetails) {
-    return (
-      <View style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#c40000" />
-          <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>
-            Loading questions...
-          </Text>
-        </View>
-      </View>
+      </ThemedView>
     );
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const progress = ((currentQuestionIndex + 1) / questions.length);
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
@@ -105,289 +98,328 @@ export default function InterviewQuestionsScreen() {
   const handleFinish = () => {
     Alert.alert(
       'Great Job!',
-      'You\'ve completed the interview practice session. Keep practicing to improve!',
+      'You\'ve completed the interview practice session.',
       [
-        { text: 'Try New Job', onPress: () => router.back() },
-        { text: 'Home', onPress: () => router.push('/home') }
+        { text: 'Try Another', onPress: () => router.back() },
+        { text: 'Done', style: 'cancel', onPress: () => router.push('/home') }
       ]
     );
   };
 
-  if (!currentQuestion) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading questions...</Text>
-      </View>
-    );
-  }
-
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'TECHNICAL': return '#FF6B6B';
-      case 'BEHAVIORAL': return '#4ECDC4';
-      case 'SITUATIONAL': return '#45B7D1';
-      case 'COMPANY_SPECIFIC': return '#96CEB4';
-      default: return '#95A5A6';
+      case 'TECHNICAL': return '#4dabf7';
+      case 'BEHAVIORAL': return '#51cf66';
+      case 'SITUATIONAL': return '#fcc419';
+      case 'COMPANY_SPECIFIC': return '#ff922b';
+      default: return '#adb5bd';
     }
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'EASY': return '#2ECC71';
-      case 'MEDIUM': return '#F39C12';
-      case 'HARD': return '#E74C3C';
-      default: return '#95A5A6';
+      case 'EASY': return '#40c057';
+      case 'MEDIUM': return '#fab005';
+      case 'HARD': return '#fa5252';
+      default: return '#adb5bd';
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.jobTitle}>
-          Questions for {jobDetails?.jobTitle}
-        </Text>
-        <Text style={styles.company}>
-          at {jobDetails?.companyName}
-        </Text>
-        
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, { width: `${progress}%` }]} />
-        </View>
-        <Text style={styles.progressText}>
-          {currentQuestionIndex + 1} of {questions.length}
-        </Text>
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <ThemedView style={styles.content}>
+          <ScreenHeader 
+            title="Practice" 
+            subtitle={`${jobDetails.jobTitle} at ${jobDetails.companyName}`}
+          />
 
-      <ScrollView style={styles.content}>
-        {/* Question Card */}
-        <View style={styles.questionCard}>
-          <View style={styles.badges}>
-            <View style={[styles.badge, { backgroundColor: getCategoryColor(currentQuestion.category) }]}>
-              <Text style={styles.badgeText}>{currentQuestion.category}</Text>
+          <View style={styles.progressSection}>
+            <View style={styles.progressHeader}>
+              <ThemedText style={styles.progressLabel}>Session Progress</ThemedText>
+              <ThemedText style={styles.progressCount}>{currentQuestionIndex + 1} / {questions.length}</ThemedText>
             </View>
-            <View style={[styles.badge, { backgroundColor: getDifficultyColor(currentQuestion.difficulty) }]}>
-              <Text style={styles.badgeText}>{currentQuestion.difficulty}</Text>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
             </View>
           </View>
 
-          <Text style={styles.questionText}>{currentQuestion.question}</Text>
+          <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
+            <ThemedView style={styles.questionCard}>
+              <View style={styles.badges}>
+                <View style={[styles.badge, { backgroundColor: getCategoryColor(currentQuestion.category) }]}>
+                  <ThemedText style={styles.badgeText}>{currentQuestion.category}</ThemedText>
+                </View>
+                <View style={[styles.badge, { backgroundColor: getDifficultyColor(currentQuestion.difficulty) }]}>
+                  <ThemedText style={styles.badgeText}>{currentQuestion.difficulty}</ThemedText>
+                </View>
+              </View>
 
-          {/* Expert Tip */}
-          {currentQuestion.tips && (
-            <View style={styles.tipContainer}>
-              <TouchableOpacity 
-                style={styles.tipButton}
-                onPress={() => setShowTip(!showTip)}
-              >
-                <Text style={styles.tipButtonText}>
-                  💡 {showTip ? 'Hide' : 'Show'} Expert Tip
-                </Text>
-              </TouchableOpacity>
-              
-              {showTip && (
-                <View style={styles.tipContent}>
-                  <Text style={styles.tipText}>{currentQuestion.tips}</Text>
+              <ThemedText style={styles.questionText}>{currentQuestion.question}</ThemedText>
+
+              {currentQuestion.tips && (
+                <View style={styles.tipSection}>
+                  <TouchableOpacity 
+                    style={styles.tipHeader}
+                    onPress={() => setShowTip(!showTip)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.tipTitleRow}>
+                      <Ionicons name="bulb" size={18} color={RED} />
+                      <ThemedText style={styles.tipTitle}>Expert Advice</ThemedText>
+                    </View>
+                    <Ionicons name={showTip ? "chevron-up" : "chevron-down"} size={20} color="#999" />
+                  </TouchableOpacity>
+                  
+                  {showTip && (
+                    <View style={styles.tipBody}>
+                      <ThemedText style={styles.tipText}>{currentQuestion.tips}</ThemedText>
+                    </View>
+                  )}
                 </View>
               )}
+            </ThemedView>
+
+            <View style={styles.practiceHint}>
+              <Ionicons name="mic-outline" size={24} color="#666" />
+              <ThemedText style={styles.hintText}>
+                Try answering this aloud. Pay attention to your pace and clarity.
+              </ThemedText>
             </View>
-          )}
-        </View>
+          </ScrollView>
 
-        {/* Practice Area */}
-        <View style={styles.practiceArea}>
-          <Text style={styles.practiceTitle}>Practice Your Answer</Text>
-          <Text style={styles.practiceSubtitle}>
-            Think through your response or practice speaking aloud. 
-            Consider using the STAR method for behavioral questions.
-          </Text>
-        </View>
-      </ScrollView>
+          <View style={styles.navigation}>
+            <TouchableOpacity 
+              style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
+              onPress={handlePrevious}
+              disabled={currentQuestionIndex === 0}
+            >
+              <Ionicons name="arrow-back" size={20} color={currentQuestionIndex === 0 ? "#ccc" : RED} />
+            </TouchableOpacity>
 
-      {/* Navigation */}
-      <View style={styles.navigation}>
-        <TouchableOpacity 
-          style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
-          onPress={handlePrevious}
-          disabled={currentQuestionIndex === 0}
-        >
-          <Text style={[styles.navButtonText, currentQuestionIndex === 0 && styles.navButtonTextDisabled]}>
-            Previous
-          </Text>
-        </TouchableOpacity>
-
-        {currentQuestionIndex === questions.length - 1 ? (
-          <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
-            <Text style={styles.finishButtonText}>Finish Session</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>Next Question</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+            {currentQuestionIndex === questions.length - 1 ? (
+              <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
+                <ThemedText style={styles.finishButtonText}>Complete Session</ThemedText>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+                <ThemedText style={styles.nextButtonText}>Next Question</ThemedText>
+                <Ionicons name="arrow-forward" size={20} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </ThemedView>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  company: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-  },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: RED,
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
   },
   content: {
     flex: 1,
     padding: 20,
   },
-  questionCard: {
-    backgroundColor: '#f8f9fa',
+  centeredContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  errorButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: RED,
     borderRadius: 12,
+  },
+  errorButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  progressSection: {
+    marginBottom: 24,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#888',
+  },
+  progressCount: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: RED,
+  },
+  progressTrack: {
+    height: 8,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: RED,
+    borderRadius: 4,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  questionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   badges: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
+    gap: 10,
+    marginBottom: 20,
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: 'white',
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#fff',
+    textTransform: 'uppercase',
   },
   questionText: {
-    fontSize: 18,
-    lineHeight: 24,
-    color: '#333',
-    marginBottom: 16,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    lineHeight: 32,
+    marginBottom: 24,
   },
-  tipContainer: {
+  tipSection: {
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 16,
+    borderTopColor: '#f0f0f0',
+    paddingTop: 20,
   },
-  tipButton: {
-    alignSelf: 'flex-start',
+  tipHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  tipButtonText: {
-    fontSize: 14,
+  tipTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tipTitle: {
+    fontSize: 15,
+    fontWeight: '700',
     color: RED,
-    fontWeight: '600',
   },
-  tipContent: {
+  tipBody: {
     marginTop: 12,
-    padding: 12,
-    backgroundColor: '#fff3cd',
-    borderRadius: 8,
+    backgroundColor: '#fff9db',
+    padding: 16,
+    borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#ffc107',
+    borderLeftColor: '#fab005',
   },
   tipText: {
     fontSize: 14,
     color: '#856404',
+    lineHeight: 20,
     fontStyle: 'italic',
   },
-  practiceArea: {
-    backgroundColor: '#f8f9fa',
-    padding: 16,
-    borderRadius: 12,
+  practiceHint: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    marginVertical: 20,
+    opacity: 0.6,
   },
-  practiceTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  practiceSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
+  hintText: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 18,
   },
   navigation: {
     flexDirection: 'row',
-    padding: 20,
     gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    marginTop: 10,
   },
   navButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
     borderColor: RED,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   navButtonDisabled: {
-    borderColor: '#ccc',
-  },
-  navButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: RED,
-  },
-  navButtonTextDisabled: {
-    color: '#ccc',
+    borderColor: '#eee',
   },
   nextButton: {
-    flex: 2,
+    flex: 1,
     backgroundColor: RED,
-    paddingVertical: 12,
-    borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 30,
+    gap: 10,
+    shadowColor: RED,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   nextButtonText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
+    fontWeight: '800',
   },
   finishButton: {
-    flex: 2,
-    backgroundColor: '#28a745',
-    paddingVertical: 12,
-    borderRadius: 8,
+    flex: 1,
+    backgroundColor: '#2ecc71',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 30,
+    gap: 10,
+    shadowColor: '#2ecc71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   finishButtonText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
+    fontWeight: '800',
   },
 });
