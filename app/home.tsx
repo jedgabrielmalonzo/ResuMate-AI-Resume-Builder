@@ -1,16 +1,16 @@
+import ChatbotModal from "@/components/ChatbotModal";
+import BottomNav from "@/components/ui/BottomNav";
+import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  StatusBar,
-  Image,
-  Alert,
+    Animated,
+    Image,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
-import { useRouter } from 'expo-router';
-import ChatbotModal from '@/components/ChatbotModal';
 
 const RED = "#c40000";
 
@@ -36,7 +36,7 @@ export default function Home() {
           duration: 3200,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
 
     Animated.loop(
@@ -51,7 +51,7 @@ export default function Home() {
           duration: 3800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
 
     Animated.parallel([
@@ -69,24 +69,11 @@ export default function Home() {
   }, []);
 
   const handleBuildResume = () => {
-    router.push('/resume/form');
+    router.push("/resume/form");
   };
 
   const handleInterviewPrep = () => {
-    router.push('/interview/form');
-  };
-
-  const handleHome = () => {
-    // Already on home screen
-  };
-
-  const handleAccount = () => {
-    // Navigate to account screen
-    router.push('/Account');
-  };
-
-  const handleSettings = () => {
-    router.push('/settings');
+    router.push("/interview/form");
   };
 
   return (
@@ -108,12 +95,12 @@ export default function Home() {
           {
             opacity: fade,
             transform: [{ translateY: slide }],
-          }
+          },
         ]}
       >
         <View style={styles.logoBox}>
           <Image
-            source={require('../assets/images/newlogo.png')}
+            source={require("../assets/images/newlogo.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -147,24 +134,7 @@ export default function Home() {
       </Animated.View>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavigation}>
-        <TouchableOpacity style={styles.navItem} onPress={handleAccount}>
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navLabel}>Account</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.homeNavItem} onPress={handleHome}>
-          <View style={styles.homeCircle}>
-            <Text style={styles.homeIcon}>🏠</Text>
-          </View>
-          <Text style={styles.homeLabel}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={handleSettings}>
-          <Text style={styles.navIcon}>⚙️</Text>
-          <Text style={styles.navLabel}>Settings</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav />
 
       {/* Floating Chatbot Button */}
       <TouchableOpacity
@@ -209,8 +179,8 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 24,
     paddingBottom: 100, // Space for bottom navigation
   },
@@ -241,24 +211,24 @@ const styles = StyleSheet.create({
   },
 
   actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
     paddingHorizontal: 10,
   },
 
   actionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'white',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 30,
     elevation: 3,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    width: '45%',
+    width: "45%",
     minHeight: 140,
   },
 
@@ -269,85 +239,23 @@ const styles = StyleSheet.create({
 
   actionButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: RED,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
-  },
-
-  bottomNavigation: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingVertical: 15,
-    paddingBottom: 35,
-    elevation: 8,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-
-  navIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-
-  navLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-
-  homeNavItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-
-  homeCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: RED,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-
-  homeIcon: {
-    fontSize: 20,
-    color: 'white',
-  },
-
-  homeLabel: {
-    fontSize: 12,
-    color: RED,
-    fontWeight: '600',
   },
 
   // Floating Action Button (chatbot)
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 100,
     right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: RED,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: RED,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,

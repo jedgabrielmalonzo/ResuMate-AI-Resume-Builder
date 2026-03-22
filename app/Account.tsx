@@ -1,29 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import BackButton from "@/components/ui/BackButton";
+import BottomNav from "@/components/ui/BottomNav";
+import { useAuth } from "@/context/AuthContext";
+import { useResumeContext } from "@/context/ResumeContext";
+import { resumeService, SavedResume } from "@/services/resumeService";
+import { Stack, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Alert,
   ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Stack } from 'expo-router';
-import { useAuth } from '@/context/AuthContext';
-import { useResumeContext } from '@/context/ResumeContext';
-import { resumeService, SavedResume } from '@/services/resumeService';
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = '#c40000';
-const RED_LIGHT = '#fff0f0';
+const RED = "#c40000";
+const RED_LIGHT = "#fff0f0";
 
-function Initials({ name, email }: { name?: string | null; email?: string | null }) {
-  const text =
-    name
-      ? name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
-      : email?.[0]?.toUpperCase() ?? 'U';
+function Initials({
+  name,
+  email,
+}: {
+  name?: string | null;
+  email?: string | null;
+}) {
+  const text = name
+    ? name
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : (email?.[0]?.toUpperCase() ?? "U");
   return (
     <View style={styles.avatar}>
       <Text style={styles.avatarText}>{text}</Text>
@@ -45,7 +56,7 @@ export default function Account() {
           const data = await resumeService.getUserResumes(user.uid);
           setResumes(data);
         } catch (error) {
-          console.error('Error fetching resumes:', error);
+          console.error("Error fetching resumes:", error);
         } finally {
           setLoading(false);
         }
@@ -59,39 +70,43 @@ export default function Account() {
   const handleViewResume = (resume: SavedResume) => {
     setGeneratedResumeData(resume.resumeData);
     setSelectedTemplateId(resume.templateId);
-    router.push('/resume/result');
+    router.push("/resume/result");
   };
 
   const handleDeleteResume = async (resumeId: string) => {
-    Alert.alert('Delete Resume', 'Are you sure you want to delete this resume?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await resumeService.deleteResume(resumeId);
-            setResumes((prev) => prev.filter((r) => r.id !== resumeId));
-          } catch {
-            Alert.alert('Error', 'Failed to delete resume.');
-          }
+    Alert.alert(
+      "Delete Resume",
+      "Are you sure you want to delete this resume?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await resumeService.deleteResume(resumeId);
+              setResumes((prev) => prev.filter((r) => r.id !== resumeId));
+            } catch {
+              Alert.alert("Error", "Failed to delete resume.");
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleLogout = async () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Sign Out',
-        style: 'destructive',
+        text: "Sign Out",
+        style: "destructive",
         onPress: async () => {
           try {
             await logout();
-            router.replace('/auth/login');
+            router.replace("/auth/login");
           } catch {
-            Alert.alert('Error', 'Failed to sign out. Please try again.');
+            Alert.alert("Error", "Failed to sign out. Please try again.");
           }
         },
       },
@@ -99,9 +114,14 @@ export default function Account() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="light-content" backgroundColor={RED} />
+
+      {/* Back Button */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
+        <BackButton />
+      </View>
 
       {/* Hero Header */}
       <View style={styles.header}>
@@ -109,7 +129,7 @@ export default function Account() {
 
         <View style={styles.userInfo}>
           <Text style={styles.userName} numberOfLines={1}>
-            {user?.displayName || 'User'}
+            {user?.displayName || "User"}
           </Text>
           <Text style={styles.userEmail} numberOfLines={1}>
             {user?.email}
@@ -149,7 +169,7 @@ export default function Account() {
             <Text style={styles.sectionTitle}>My Resumes</Text>
             <TouchableOpacity
               style={styles.newResumeChip}
-              onPress={() => router.push('/resume/form')}
+              onPress={() => router.push("/resume/form")}
               activeOpacity={0.7}
             >
               <Text style={styles.newResumeChipText}>+ New</Text>
@@ -157,7 +177,11 @@ export default function Account() {
           </View>
 
           {loading ? (
-            <ActivityIndicator size="small" color={RED} style={{ marginTop: 20 }} />
+            <ActivityIndicator
+              size="small"
+              color={RED}
+              style={{ marginTop: 20 }}
+            />
           ) : resumes.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>📝</Text>
@@ -167,7 +191,7 @@ export default function Account() {
               </Text>
               <TouchableOpacity
                 style={styles.buildBtn}
-                onPress={() => router.push('/resume/form')}
+                onPress={() => router.push("/resume/form")}
                 activeOpacity={0.85}
               >
                 <Text style={styles.buildBtnText}>Build Resume</Text>
@@ -190,12 +214,12 @@ export default function Account() {
                   </Text>
                   <Text style={styles.resumeDate}>
                     {resume.createdAt?.toDate
-                      ? resume.createdAt.toDate().toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
+                      ? resume.createdAt.toDate().toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
                         })
-                      : 'Just now'}
+                      : "Just now"}
                   </Text>
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>✓ Completed</Text>
@@ -215,30 +239,17 @@ export default function Account() {
         </View>
 
         {/* Sign Out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={handleLogout} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.signOutBtn}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+        >
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItemActive} onPress={() => {}}>
-          <View style={styles.navActiveCircle}>
-            <Text style={styles.navActiveIcon}>👤</Text>
-          </View>
-          <Text style={styles.navActiveLabel}>Account</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home')}>
-          <Text style={styles.navIcon}>🏠</Text>
-          <Text style={styles.navLabel}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/settings')}>
-          <Text style={styles.navIcon}>⚙️</Text>
-          <Text style={styles.navLabel}>Settings</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav />
     </SafeAreaView>
   );
 }
@@ -246,7 +257,7 @@ export default function Account() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f6fa',
+    backgroundColor: "#f5f6fa",
   },
 
   // Header
@@ -255,62 +266,62 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   avatar: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: "rgba(255,255,255,0.25)",
     borderWidth: 2.5,
-    borderColor: 'rgba(255,255,255,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "rgba(255,255,255,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: 26,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
   },
   userInfo: {
     flex: 1,
   },
   userName: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
     marginBottom: 2,
   },
   userEmail: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.78)',
+    color: "rgba(255,255,255,0.78)",
     marginBottom: 8,
   },
   memberBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
   memberBadgeText: {
     fontSize: 11,
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
 
   // Stats
   statsCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    backgroundColor: "#fff",
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 10,
     marginTop: 16,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -318,22 +329,22 @@ const styles = StyleSheet.create({
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
   },
   statNumber: {
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: "800",
     color: RED,
     marginBottom: 3,
   },
   statLabel: {
     fontSize: 12,
-    color: '#888',
-    fontWeight: '500',
+    color: "#888",
+    fontWeight: "500",
   },
 
   // Section
@@ -346,15 +357,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a2e',
+    fontWeight: "700",
+    color: "#1a1a2e",
   },
   newResumeChip: {
     backgroundColor: RED_LIGHT,
@@ -362,23 +373,23 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ffd0d0',
+    borderColor: "#ffd0d0",
   },
   newResumeChipText: {
     fontSize: 13,
     color: RED,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Resume cards
   resumeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -389,34 +400,34 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     backgroundColor: RED_LIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   resumeIconText: { fontSize: 22 },
   resumeInfo: { flex: 1 },
   resumeTitle: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a2e',
+    fontWeight: "600",
+    color: "#1a1a2e",
     marginBottom: 3,
   },
   resumeDate: {
     fontSize: 11,
-    color: '#999',
+    color: "#999",
     marginBottom: 6,
   },
   badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#e8f8f0',
+    alignSelf: "flex-start",
+    backgroundColor: "#e8f8f0",
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   badgeText: {
     fontSize: 10,
-    color: '#1a8a50',
-    fontWeight: '700',
+    color: "#1a8a50",
+    fontWeight: "700",
   },
   deleteBtn: {
     padding: 6,
@@ -425,17 +436,17 @@ const styles = StyleSheet.create({
   deleteIcon: { fontSize: 16, opacity: 0.55 },
   chevron: {
     fontSize: 22,
-    color: '#ccc',
+    color: "#ccc",
     marginLeft: 2,
   },
 
   // Empty state
   emptyCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 30,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -444,14 +455,14 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 40, marginBottom: 12 },
   emptyTitle: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1a1a2e',
+    fontWeight: "700",
+    color: "#1a1a2e",
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#888',
-    textAlign: 'center',
+    color: "#888",
+    textAlign: "center",
     lineHeight: 19,
     marginBottom: 20,
   },
@@ -462,74 +473,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   buildBtnText: {
-    color: '#fff',
-    fontWeight: '700',
+    color: "#fff",
+    fontWeight: "700",
     fontSize: 14,
   },
 
   // Sign out
   signOutBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 14,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1.5,
-    borderColor: '#ffd0d0',
+    borderColor: "#ffd0d0",
     marginTop: 4,
     marginBottom: 10,
   },
   signOutText: {
     color: RED,
     fontSize: 15,
-    fontWeight: '700',
-  },
-
-  // Bottom nav
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingTop: 12,
-    paddingBottom: 28,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  navItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  navItemActive: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  navActiveCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: RED,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  navActiveIcon: { fontSize: 20, color: '#fff' },
-  navActiveLabel: {
-    fontSize: 11,
-    color: RED,
-    fontWeight: '700',
-  },
-  navIcon: { fontSize: 22, marginBottom: 3 },
-  navLabel: {
-    fontSize: 11,
-    color: '#888',
+    fontWeight: "700",
   },
 });
