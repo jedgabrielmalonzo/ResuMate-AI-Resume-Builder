@@ -123,18 +123,33 @@ async function getAvailableModelNames(): Promise<string[]> {
 }
 
 function buildCandidateModelList(available: string[]): string[] {
-  const preferred = available.filter((name) => {
+  const normalized = available.filter((name) => {
     const lower = name.toLowerCase();
-    return lower.includes('image') || lower.includes('vision');
+    return (
+      lower.includes('gemini') &&
+      !lower.includes('embedding') &&
+      !lower.includes('aqa')
+    );
   });
 
-  const flash = available.filter((name) => {
-    const lower = name.toLowerCase();
-    return lower.includes('flash');
-  });
+  // If ListModels returned data, trust it and avoid stale hardcoded names.
+  if (normalized.length > 0) {
+    const preferred = normalized.filter((name) => {
+      const lower = name.toLowerCase();
+      return lower.includes('image') || lower.includes('vision');
+    });
 
-  // Deduplicate while preserving order.
-  return Array.from(new Set([...preferred, ...flash, ...IMAGE_MODELS_FALLBACK]));
+    const flash = normalized.filter((name) => {
+      const lower = name.toLowerCase();
+      return lower.includes('flash');
+    });
+
+    // Deduplicate while preserving order.
+    return Array.from(new Set([...preferred, ...flash, ...normalized]));
+  }
+
+  // Fallback only when model discovery is unavailable.
+  return IMAGE_MODELS_FALLBACK;
 }
 
 export async function generateFormalPhoto(
@@ -174,6 +189,7 @@ export async function generateFormalPhoto(
 
   const fallbackMessage =
     'Image generation is not available for the current Gemini API key/project. ' +
+    'Your key appears to have text-capable models only, or image generation is not enabled. ' +
     'Enable an image-capable Gemini model, then try again.';
 
   if (lastError instanceof Error) {
