@@ -7,6 +7,8 @@ export interface ResumeSection {
 
 export interface GeneratedResumeData {
   sections: ResumeSection[];
+  photoUri?: string | null;
+  templateId?: string;
 }
 
 interface ResumeContextType {

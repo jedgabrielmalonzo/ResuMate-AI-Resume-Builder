@@ -26,14 +26,26 @@ export default function ResumeResultScreen() {
   const { generatedResumeData, selectedTemplateId } = useResumeContext();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [useLegacyStyle, setUseLegacyStyle] = useState(true);
 
-  const templateId = selectedTemplateId ?? 'chronological';
+  let templateId = selectedTemplateId ?? 'chronological';
+  
+  // Check if it's an old template ID
+  const isOldTemplate = ['chronological', 'functional', 'hybrid', 'mini', 'student-entry', 'creative', 'executive'].includes(templateId);
+  
+  if (isOldTemplate && !useLegacyStyle) {
+    if (templateId === 'chronological' || templateId === 'executive') {
+       templateId = 'history-no-photo';
+    } else {
+       templateId = 'skill-no-photo';
+    }
+  }
 
   const handleSavePDF = async () => {
     if (!generatedResumeData) return;
     try {
       setSaving(true);
-      await exportResumeToPDF(generatedResumeData, templateId);
+      await exportResumeToPDF(generatedResumeData, templateId, useLegacyStyle && isOldTemplate);
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Could not save PDF.');
     } finally {
@@ -65,8 +77,24 @@ export default function ResumeResultScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {isOldTemplate && (
+            <View style={styles.legacyToggleContainer}>
+              <Text style={styles.legacyToggleText}>
+                {useLegacyStyle ? "Currently viewing original layout" : "Previewing new ATS-friendly clean layout"}
+              </Text>
+              <TouchableOpacity 
+                style={styles.legacyToggleBtn} 
+                onPress={() => setUseLegacyStyle(!useLegacyStyle)}
+              >
+                <Text style={styles.legacyToggleBtnText}>
+                  {useLegacyStyle ? "View New Style" : "View Legacy Style"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {generatedResumeData ? (
-            <ResumeDocument data={generatedResumeData} templateId={templateId} />
+            <ResumeDocument data={generatedResumeData} templateId={templateId} legacyColors={useLegacyStyle && isOldTemplate} />
           ) : (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No resume generated yet.</Text>
@@ -170,6 +198,35 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: { fontSize: 16, color: '#9CA3AF' },
+  legacyToggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    marginHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  legacyToggleText: {
+    fontSize: 12,
+    color: '#6b7280',
+    flex: 1,
+  },
+  legacyToggleBtn: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  legacyToggleBtnText: {
+    fontSize: 12,
+    color: '#111827',
+    fontWeight: '600',
+  },
 
   actions: {
     backgroundColor: '#fff',

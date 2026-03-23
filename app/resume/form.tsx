@@ -15,9 +15,11 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { useThemeColor } from '../../hooks/use-theme-color';
@@ -149,8 +151,29 @@ export default function ResumeFormScreen() {
   ]);
 
   const [hasWorkExperience, setHasWorkExperience] = useState(true);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [latestResume, setLatestResume] = useState<SavedResume | null>(null);
   const [loadingLatest, setLoadingLatest] = useState(false);
+
+  const handlePickPhoto = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission Required", "Please allow access to your photos to upload an ID picture.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // 1x1 ratio
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
 
   useEffect(() => {
     if (user?.uid) {
@@ -203,6 +226,7 @@ export default function ResumeFormScreen() {
             setProjects(data.projects?.length ? data.projects : projects);
             setAchievements(data.achievements?.length ? data.achievements : achievements);
             setHasWorkExperience(!!data.workExperience?.length);
+            setPhotoUri(data.photoUri || null);
             
             Alert.alert("Success", "Last resume data has been loaded.");
           }
@@ -354,6 +378,7 @@ export default function ResumeFormScreen() {
       projects,
       skills,
       achievements,
+      photoUri,
     };
     try {
       const result = await generateResume(userData, template);
@@ -390,6 +415,7 @@ export default function ResumeFormScreen() {
       projects,
       skills,
       achievements,
+      photoUri,
     };
     const jobField = targetRole || professionalSummary || '';
     try {
@@ -448,54 +474,52 @@ export default function ResumeFormScreen() {
                   <ThemedText style={styles.templatesSubtitle}>Based on your profile, we recommend these professional layouts.</ThemedText>
                 </View>
 
-                {templateRecommendations.map((rec) => {
-                  const template = resumeTemplates.find(t => t.id === rec.id);
-                  const isSelected = selectedTemplateId === template?.id;
-                  
-                  return template ? (
-                    <TouchableOpacity 
-                      key={template.id} 
-                      style={[styles.templateCard, isSelected && styles.templateCardSelected]}
-                      onPress={() => setSelectedTemplateId(template.id)}
-                      activeOpacity={0.9}
-                    >
-                      <View style={styles.templateCardHeader}>
-                        <View style={styles.templateIconTitle}>
+                <View style={styles.templatesGrid}>
+                  {resumeTemplates.map((template) => {
+                    const isSelected = selectedTemplateId === template.id;
+                    const isRecommended = templateRecommendations.length > 0 && templateRecommendations[0].id === template.id;
+                    
+                    return (
+                      <TouchableOpacity 
+                        key={template.id} 
+                        style={[styles.templateCard, isSelected && styles.templateCardSelected]}
+                        onPress={() => setSelectedTemplateId(template.id)}
+                        activeOpacity={0.9}
+                      >
+                        {isRecommended && (
+                          <View style={styles.recommendedBadge}>
+                            <Ionicons name="star" size={12} color="#fff" />
+                            <Text style={styles.recommendedText}>Recommended</Text>
+                          </View>
+                        )}
+                        <View style={styles.templateCardHeader}>
                           <View style={[styles.templateIconCircle, { backgroundColor: isSelected ? 'rgba(196, 0, 0, 0.1)' : '#f5f5f5' }]}>
                             <Ionicons 
-                              name={template.id === 'creative' ? 'color-palette' : template.id === 'executive' ? 'ribbon' : 'document-text'} 
-                              size={22} 
+                              name={template.id.includes('photo') ? 'person-circle' : 'document-text'} 
+                              size={24} 
                               color={isSelected ? RED : '#666'} 
                             />
                           </View>
-                          <View>
-                            <Text style={styles.templateName}>{template.name}</Text>
-                            <Text style={styles.templateCategory}>{template.category}</Text>
-                          </View>
+                          {isSelected && (
+                            <View style={styles.selectedBadge}>
+                              <Ionicons name="checkmark-circle" size={20} color={RED} />
+                            </View>
+                          )}
                         </View>
-                        {isSelected && (
-                          <View style={styles.selectedBadge}>
-                            <Ionicons name="checkmark-circle" size={20} color={RED} />
+
+                        <Text style={styles.templateName}>{template.name}</Text>
+                        <Text style={styles.templateDescription} numberOfLines={3}>{template.description}</Text>
+                        
+                        {isRecommended && templateRecommendations[0]?.reason && (
+                          <View style={styles.recommendationReason}>
+                            <Ionicons name="sparkles" size={12} color="#007AFF" />
+                            <Text style={styles.recommendationText} numberOfLines={2}>{templateRecommendations[0].reason}</Text>
                           </View>
                         )}
-                      </View>
-
-                      <Text style={styles.templateDescription}>{template.description}</Text>
-                      
-                      <View style={styles.recommendationReason}>
-                        <Ionicons name="sparkles" size={14} color="#007AFF" />
-                        <Text style={styles.recommendationText}>{rec.reason}</Text>
-                      </View>
-
-                      <View style={styles.templateMeta}>
-                        <View style={styles.metaItem}>
-                          <Ionicons name="briefcase-outline" size={14} color="#888" />
-                          <Text style={styles.metaText}>{template.bestFor.split(',')[0]}...</Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ) : null;
-                })}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
 
                 <View style={styles.templateActions}>
                   {selectedTemplateId && (
@@ -902,6 +926,42 @@ export default function ResumeFormScreen() {
                   ))}
                 </ThemedView>
 
+                {/* Photo Upload */}
+                <ThemedView style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionIconTitle}>
+                      <View style={[styles.iconCircle, { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
+                        <Ionicons name="camera" size={20} color={RED} />
+                      </View>
+                      <View>
+                        <ThemedText style={styles.sectionTitle}>1x1 ID Photo (Optional)</ThemedText>
+                        <ThemedText style={{ fontSize: 13, color: '#666', marginTop: 2 }}>Only used if you select a template with a photo.</ThemedText>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                    {photoUri ? (
+                      <View style={{ position: 'relative' }}>
+                        <Image source={{ uri: photoUri }} style={{ width: 120, height: 120, borderRadius: 12, borderWidth: 1, borderColor: '#ddd' }} />
+                        <TouchableOpacity 
+                          style={{ position: 'absolute', top: -10, right: -10, backgroundColor: 'white', borderRadius: 15 }}
+                          onPress={() => setPhotoUri(null)}
+                        >
+                          <Ionicons name="close-circle" size={30} color={RED} />
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity 
+                        style={{ width: 120, height: 120, borderRadius: 12, backgroundColor: '#f5f5f5', borderWidth: 2, borderColor: '#ddd', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' }}
+                        onPress={handlePickPhoto}
+                      >
+                        <Ionicons name="image-outline" size={40} color="#999" />
+                        <Text style={{ fontSize: 13, color: '#666', marginTop: 8, fontWeight: '500' }}>Add Photo</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </ThemedView>
+
                 {/* Build Resume Button */}
                 <ThemedView style={styles.buttonContainer}>
                   <PrimaryButton
@@ -1023,28 +1083,49 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
+  templatesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
   templateCard: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    padding: 16,
     borderWidth: 2,
     borderColor: '#f0f0f0',
+    width: '48%', // roughly half width for 2 columns
+    position: 'relative',
+    overflow: 'hidden',
   },
   templateCardSelected: {
     borderColor: RED,
     backgroundColor: 'rgba(196, 0, 0, 0.02)',
+  },
+  recommendedBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    zIndex: 1,
+  },
+  recommendedText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   templateCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
-  },
-  templateIconTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    marginTop: 8,
   },
   templateIconCircle: {
     width: 44,
@@ -1054,52 +1135,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   templateName: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '700',
     color: '#1a1a1a',
-  },
-  templateCategory: {
-    fontSize: 12,
-    color: '#888',
-    fontWeight: '600',
+    marginBottom: 4,
   },
   selectedBadge: {
     marginTop: 4,
   },
   templateDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#555',
-    lineHeight: 20,
-    marginBottom: 16,
+    lineHeight: 16,
+    marginBottom: 12,
   },
   recommendationReason: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: '#f0f7ff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    gap: 8,
-    marginBottom: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 6,
+    marginTop: 'auto',
   },
   recommendationText: {
-    fontSize: 13,
+    fontSize: 10,
     color: '#007AFF',
     fontWeight: '600',
     flex: 1,
-  },
-  templateMeta: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  metaText: {
-    fontSize: 12,
-    color: '#888',
   },
   templateActions: {
     marginTop: 20,

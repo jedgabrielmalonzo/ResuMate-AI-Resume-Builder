@@ -2,14 +2,8 @@ export interface ResumeTemplate {
   id: string;
   name: string;
   category: string;
-  formatType:
-    | 'chronological'
-    | 'functional'
-    | 'hybrid'
-    | 'mini'
-    | 'student-entry'
-    | 'creative'
-    | 'executive';
+  formatType: 'functional' | 'chronological';
+  hasPhoto: boolean;
   description: string;
   sections: string[];
   bestFor: string;
@@ -19,163 +13,87 @@ export interface ResumeTemplate {
 
 export const resumeTemplates: ResumeTemplate[] = [
   {
-    id: 'chronological',
-    name: 'Chronological Resume',
-    category: 'Career Progression',
-    formatType: 'chronological',
-    description:
-      'Lists work history in reverse chronological order, starting with the most recent role.',
-    sections: [
-      'Contact Information',
-      'Professional Summary',
-      'Work Experience',
-      'Education',
-      'Skills',
-      'Certifications',
-    ],
-    bestFor:
-      'Professionals with consistent work history who want to highlight career growth.',
-    jobFields: ['Operations', 'Finance', 'Healthcare', 'Administrative', 'Corporate Roles'],
-    tips: [
-      'Show measurable impact in each role with numbers.',
-      'Keep date formatting consistent (e.g., MM/YYYY).',
-    ],
-  },
-  {
-    id: 'functional',
-    name: 'Functional Resume',
+    id: 'skill-no-photo',
+    name: 'Skill/Achievement Based',
     category: 'Skills Focused',
     formatType: 'functional',
-    description:
-      'Highlights abilities, projects, and achievements first, with less emphasis on timeline.',
+    hasPhoto: false,
+    description: 'Highlights projects, internships, and core skills first. Clean and ATS-friendly.',
     sections: [
       'Contact Information',
       'Professional Summary',
-      'Core Skills',
-      'Key Achievements',
-      'Projects',
-      'Education',
-    ],
-    bestFor:
-      'Career changers, freelancers, or applicants with employment gaps who want to spotlight strengths.',
-    jobFields: ['Creative', 'Freelance', 'Career Transition', 'Customer Service', 'Marketing'],
-    tips: [
-      'Group skills by themes (technical, communication, leadership).',
-      'Add outcome-focused bullets under each skill area.',
-    ],
-  },
-  {
-    id: 'hybrid',
-    name: 'Combination / Hybrid Resume',
-    category: 'Balanced',
-    formatType: 'hybrid',
-    description:
-      'Combines a skills summary with chronological work experience to show both capability and growth.',
-    sections: [
-      'Contact Information',
-      'Summary of Qualifications',
-      'Core Skills',
-      'Professional Experience',
-      'Education',
-      'Certifications',
-    ],
-    bestFor:
-      'Mid-level candidates who need to demonstrate skills depth and career progression.',
-    jobFields: ['Technology', 'Product', 'Management', 'Engineering', 'Business Analysis'],
-    tips: [
-      'Open with 4-6 strongest qualifications related to target role.',
-      'Keep experience chronological and focused on impact.',
-    ],
-  },
-  {
-    id: 'mini',
-    name: 'Mini Resume',
-    category: 'Networking',
-    formatType: 'mini',
-    description:
-      'A condensed resume format for fast introductions in networking events and quick opportunities.',
-    sections: [
-      'Name and Contact',
-      'Target Role',
-      'Top Skills',
-      'Highlights',
-      'Recent Experience',
-    ],
-    bestFor:
-      'Job fairs, networking, and situations where a quick one-page overview is needed.',
-    jobFields: ['Networking Events', 'Recruiter Outreach', 'Career Fairs', 'Sales', 'Startup Meetups'],
-    tips: [
-      'Limit each section to brief, high-value bullets.',
-      'Focus on relevance to a single target role.',
-    ],
-  },
-  {
-    id: 'student-entry',
-    name: 'Student / Entry-Level Resume',
-    category: 'Student',
-    formatType: 'student-entry',
-    description:
-      'Prioritizes education, internships, projects, volunteer work, and transferable skills.',
-    sections: [
-      'Contact Information',
-      'Career Objective',
-      'Education',
-      'Relevant Coursework',
-      'Projects',
-      'Internships/Volunteer',
-      'Skills',
-      'Achievements',
-    ],
-    bestFor:
-      'Students and fresh graduates with limited formal work experience.',
-    jobFields: ['Internships', 'Graduate Programs', 'Entry-Level Roles', 'Campus Hiring', 'Junior Developer Roles'],
-    tips: [
-      'Highlight class projects with tools used and measurable outcomes.',
-      'Include leadership, organization roles, and volunteer impact.',
-    ],
-  },
-  {
-    id: 'creative',
-    name: 'Creative Portfolio',
-    category: 'Design & Arts',
-    formatType: 'hybrid',
-    description:
-      'A visually engaging format that emphasizes projects, creative skills, and a unique professional identity.',
-    sections: [
-      'Contact Information',
-      'Creative Profile',
-      'Portfolio Highlights',
-      'Professional Journey',
       'Technical Skills',
-      'Education',
+      'Project Highlights',
+      'Education'
     ],
-    bestFor: 'Designers, marketers, content creators, and those in artistic or innovative fields.',
-    jobFields: ['Graphic Design', 'Marketing', 'Content Creation', 'UI/UX', 'Advertising'],
+    bestFor: 'Undergrads, fresh grads, or applicants wanting to highlight projects and extracurriculars.',
+    jobFields: ['Technology', 'Creative', 'Entry-Level Roles', 'Freelance'],
     tips: [
-      'Use action-oriented language for project descriptions.',
-      'Highlight the tools and technologies used in each creative piece.',
+      'Focus on measurable outcomes in your projects.',
+      'Group your technical skills into categories (e.g., Frontend, Backend).'
     ],
   },
   {
-    id: 'executive',
-    name: 'Executive Leadership',
-    category: 'Management',
-    formatType: 'chronological',
-    description:
-      'A sophisticated, high-impact format focused on leadership philosophy, strategic achievements, and board-ready outcomes.',
+    id: 'skill-with-photo',
+    name: 'Skill/Achievement Based (With 1x1 Photo)',
+    category: 'Skills Focused',
+    formatType: 'functional',
+    hasPhoto: true,
+    description: 'Same skill-focused layout but includes a professional 1x1 ID photo in the header.',
     sections: [
       'Contact Information',
-      'Executive Summary',
-      'Senior Leadership Experience',
-      'Core Competencies',
-      'Board & Advisory Roles',
-      'Education & Executive Training',
+      'Professional Summary',
+      'Technical Skills',
+      'Project Highlights',
+      'Education'
     ],
-    bestFor: 'Managers, Directors, VP-level, and C-suite professionals.',
-    jobFields: ['General Management', 'Strategy', 'Finance', 'Technology Leadership', 'Operations'],
+    bestFor: 'Local job applications, internships, or school forms requiring an ID photo.',
+    jobFields: ['Internships', 'Local Corporate Roles', 'Government Forms'],
     tips: [
-      'Focus on high-level ROI and strategic impact rather than daily tasks.',
-      'Quantify the scale of teams, budgets, and business transformations led.',
+      'Ensure your 1x1 photo has a neutral background.',
+      'Wear professional or business-casual attire.'
     ],
   },
+  {
+    id: 'history-no-photo',
+    name: 'Education/Job History Based',
+    category: 'Career/Education Timeline',
+    formatType: 'chronological',
+    hasPhoto: false,
+    description: 'Traditional formal layout focusing on education and chronological work/internship experience.',
+    sections: [
+      'Contact Information',
+      'Professional Summary',
+      'Education',
+      'Professional Experience',
+      'Skills'
+    ],
+    bestFor: 'Students with formal internships or fresh grads applying to traditional corporate roles.',
+    jobFields: ['Finance', 'Business', 'Operations', 'Corporate Roles'],
+    tips: [
+      'List your most recent education or work experience first.',
+      'Use action verbs (e.g., Led, Developed) for your experience bullets.'
+    ],
+  },
+  {
+    id: 'history-with-photo',
+    name: 'Education/Job History Based (With 1x1 Photo)',
+    category: 'Career/Education Timeline',
+    formatType: 'chronological',
+    hasPhoto: true,
+    description: 'Traditional layout combined with a professional 1x1 ID photo for complete formal applications.',
+    sections: [
+      'Contact Information',
+      'Professional Summary',
+      'Education',
+      'Professional Experience',
+      'Skills'
+    ],
+    bestFor: 'Applications that strict require a formal resume attached with an ID picture.',
+    jobFields: ['Healthcare', 'Local Enterprise', 'Traditional Agencies'],
+    tips: [
+      'Keep the photo formal and well-lit.',
+      'Ensure dates are consistent (e.g., MM/YYYY format).'
+    ],
+  }
 ];

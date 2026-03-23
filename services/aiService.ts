@@ -70,7 +70,7 @@ function ensureTargetRoleInResume(
   const insertAt = contactIdx >= 0 ? contactIdx + 1 : 0;
   const inserted = [...data.sections];
   inserted.splice(insertAt, 0, {
-    title: template.formatType === 'mini' ? 'Target Role' : 'Career Objective',
+    title: 'Career Objective',
     content: formalRoleLine,
   });
   return { sections: inserted };
@@ -88,31 +88,6 @@ function getFormatInstructions(template: ResumeTemplate): string {
         'Prioritize skills, strengths, and achievements over timeline details.',
         'Use grouped skill categories with evidence bullets for each group.',
       ].join(' ');
-    case 'hybrid':
-      return [
-        'Start with a strong qualifications/skills summary section.',
-        'Follow with chronological professional experience to show career progression.',
-      ].join(' ');
-    case 'mini':
-      return [
-        'Keep the resume highly condensed and networking-ready.',
-        'Use short bullets and only include the highest-value highlights.',
-      ].join(' ');
-    case 'student-entry':
-      return [
-        'Emphasize education, projects, internships/volunteer work, and transferable skills.',
-        'Minimize formal work-history dependency and focus on potential and relevant output.',
-      ].join(' ');
-    case 'creative':
-      return [
-        'Focus on project outcomes, creative problem-solving, and unique technical skills.',
-        'Use punchy, engaging language and emphasize portfolio highlights.',
-      ].join(' ');
-    case 'executive':
-      return [
-        'Prioritize high-level strategic impact, leadership philosophy, and business transformation.',
-        'Focus on ROI, team scale, and board-level achievements.',
-      ].join(' ');
     default:
       return 'Write a clear, professional resume tailored to the selected format.';
   }
@@ -128,16 +103,6 @@ function getTemplateBaseReason(template: ResumeTemplate): string {
       return 'Best when your strongest advantage is clear, steady career progression.';
     case 'functional':
       return 'Best when skills and achievements are stronger than long work history.';
-    case 'hybrid':
-      return 'Best for showing both core strengths and a structured career timeline.';
-    case 'mini':
-      return 'Best for networking events and quick introductions.';
-    case 'student-entry':
-      return 'Best for students and fresh graduates building their first professional profile.';
-    case 'creative':
-      return 'Best for creative roles where projects and unique skills are the main focus.';
-    case 'executive':
-      return 'Best for high-level leadership roles requiring a focus on strategic impact.';
     default:
       return 'A suitable format based on your profile.';
   }
@@ -165,10 +130,7 @@ async function callGeminiAPI(prompt: string): Promise<string> {
 export async function generateResume(userData: any, template: ResumeTemplate): Promise<GeneratedResumeData> {
   const sections = template.sections.join(', ');
   const formatInstructions = getFormatInstructions(template);
-  const lengthGuidance =
-    template.formatType === 'mini'
-      ? 'Keep each section to 2-4 concise bullets and target one-page equivalent length.'
-      : 'Keep content concise but complete, suitable for a full professional resume.';
+  const lengthGuidance = 'Keep content concise but complete, suitable for a full professional resume.';
 
   const prompt = `You are a professional resume writer. Generate a complete, well-structured resume as a JSON object for the following person using the "${template.name}" template.
 
@@ -208,22 +170,25 @@ ${JSON.stringify({
 })}
 Target job/field: ${jobField}
 
-Here are available resume templates:
+Here are the 4 available resume templates:
 ${templateList}
 
-Recommend the top 2-3 most suitable template IDs for this user and explain your choices in 1 short sentence each.
-Return ONLY a valid JSON array of objects: [{"id": "template-id", "reason": "short explanation"}]`;
+Recommend the SINGLE most suitable template ID for this user.
+Return ONLY a valid JSON object: {"id": "template-id", "reason": "short explanation"}`;
 
   try {
     const raw = await callGeminiAPI(prompt);
     const cleaned = raw.replace(/```json|```/g, '').trim();
-    return JSON.parse(cleaned) as TemplateRecommendation[];
+    return [JSON.parse(cleaned) as TemplateRecommendation]; // return as array of 1 for backward compatibility
   } catch (error) {
-    console.error('Error getting template recommendations:', error);
+    console.error('Error getting template recommendation:', error);
     // Fallback to basic logic if AI fails
+    const hasExp = !!userData.workExperience?.length;
     return [
-      { id: 'chronological', reason: 'A safe, professional choice for most roles.' },
-      { id: 'hybrid', reason: 'Good for balancing skills and experience.' }
+      { 
+        id: hasExp ? 'history-no-photo' : 'skill-no-photo', 
+        reason: hasExp ? 'A traditional chronological format is best since you have work experience.' : 'A skill-based format highlights your projects and education best.' 
+      }
     ];
   }
 }
