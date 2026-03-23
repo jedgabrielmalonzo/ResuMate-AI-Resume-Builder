@@ -33,13 +33,7 @@ export default function ResumeResultScreen() {
     if (!generatedResumeData) return;
     try {
       setSaving(true);
-      const savedFile = await exportResumeToPDF(generatedResumeData, templateId);
-      Alert.alert(
-        'Resume Saved',
-        Platform.OS === 'android'
-          ? `Your resume has been saved as ${savedFile.fileName}.\n\nTip: On first save, choose your Downloads folder when prompted.`
-          : `Your resume has been saved as ${savedFile.fileName}.`
-      );
+      await exportResumeToPDF(generatedResumeData, templateId);
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Could not save PDF.');
     } finally {

@@ -1,8 +1,5 @@
 import * as Print from 'expo-print';
-import { Directory, File, Paths } from 'expo-file-system';
-import * as FileSystemLegacy from 'expo-file-system/legacy';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import * as Sharing from 'expo-sharing';
 import { GeneratedResumeData } from '@/context/ResumeContext';
 
 const TEMPLATE_COLORS: Record<string, { accent: string; text: string }> = {
@@ -14,8 +11,6 @@ const TEMPLATE_COLORS: Record<string, { accent: string; text: string }> = {
   creative: { accent: '#FF4081', text: '#ffffff' },
   executive: { accent: '#1A237E', text: '#ffffff' },
 };
-
-const DOWNLOADS_URI_KEY = '@resumate_downloads_directory_uri';
 
 function buildResumeHTML(data: GeneratedResumeData, templateId: string): string {
   const colors = TEMPLATE_COLORS[templateId] ?? TEMPLATE_COLORS.chronological;
@@ -76,23 +71,6 @@ function buildResumeFileName(templateId: string): string {
   return `resume-${templateId}-${timestamp}.pdf`;
 }
 
-async function getAndroidDownloadsDirectoryUri(): Promise<string> {
-  const storedDirectoryUri = await AsyncStorage.getItem(DOWNLOADS_URI_KEY);
-  if (storedDirectoryUri) {
-    return storedDirectoryUri;
-  }
-
-  const permission =
-    await FileSystemLegacy.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-  if (!permission.granted || !permission.directoryUri) {
-    throw new Error('Storage permission was not granted.');
-  }
-
-  await AsyncStorage.setItem(DOWNLOADS_URI_KEY, permission.directoryUri);
-  return permission.directoryUri;
-}
-
 export async function exportResumeToPDF(
   data: GeneratedResumeData,
   templateId: string
@@ -100,70 +78,20 @@ export async function exportResumeToPDF(
   const html = buildResumeHTML(data, templateId);
   const fileName = buildResumeFileName(templateId);
 
-  // On Android, save to a user-selected public folder (recommended: Downloads).
-  if (Platform.OS === 'android') {
-    const { base64 } = await Print.printToFileAsync({ html, base64: true });
-    if (!base64) {
-      throw new Error('Failed to generate PDF content.');
-    }
-
-    let directoryUri = await getAndroidDownloadsDirectoryUri();
-
-    try {
-      const fileUri = await FileSystemLegacy.StorageAccessFramework.createFileAsync(
-        directoryUri,
-        fileName,
-        'application/pdf'
-      );
-
-      await FileSystemLegacy.writeAsStringAsync(fileUri, base64, {
-        encoding: FileSystemLegacy.EncodingType.Base64,
-      });
-
-      return {
-        fileName,
-        uri: fileUri,
-      };
-    } catch {
-      // Permission can become stale after app reinstall or settings changes.
-      await AsyncStorage.removeItem(DOWNLOADS_URI_KEY);
-      directoryUri = await getAndroidDownloadsDirectoryUri();
-
-      const fileUri = await FileSystemLegacy.StorageAccessFramework.createFileAsync(
-        directoryUri,
-        fileName,
-        'application/pdf'
-      );
-
-      await FileSystemLegacy.writeAsStringAsync(fileUri, base64, {
-        encoding: FileSystemLegacy.EncodingType.Base64,
-      });
-
-      return {
-        fileName,
-        uri: fileUri,
-      };
-    }
-  }
-
+  // Generate PDF to app's temp cache — no permissions required.
   const { uri } = await Print.printToFileAsync({ html, base64: false });
 
-  const resumesDirectory = new Directory(Paths.document, 'resumes');
-  if (!resumesDirectory.exists) {
-    resumesDirectory.create({ idempotent: true, intermediates: true });
+  // Open native share sheet so user can save to Downloads, Drive, etc.
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (!isAvailable) {
+    throw new Error('Sharing is not available on this device.');
   }
 
-  const sourceFile = new File(uri);
-  const destinationFile = new File(resumesDirectory, fileName);
+  await Sharing.shareAsync(uri, {
+    mimeType: 'application/pdf',
+    dialogTitle: 'Save your resume',
+    UTI: 'com.adobe.pdf',
+  });
 
-  if (destinationFile.exists) {
-    destinationFile.delete();
-  }
-
-  sourceFile.copy(destinationFile);
-
-  return {
-    fileName,
-    uri: destinationFile.uri,
-  };
+  return { fileName, uri };
 }
