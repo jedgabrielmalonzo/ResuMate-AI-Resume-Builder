@@ -78,6 +78,10 @@ export default function Home() {
     router.push("/interview/form");
   };
 
+  const handlePhotoGenerator = () => {
+    router.push('/photo-generator/ai_photo_gen');
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -146,6 +150,19 @@ export default function Home() {
               </View>
               <Text style={styles.cardTitle}>Interview prep</Text>
               <Text style={styles.cardSubtitle}>Practice with AI</Text>
+              <Ionicons name="arrow-forward" size={18} color={RED} style={styles.cardArrow} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.card}
+              onPress={handlePhotoGenerator}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#fff5f5' }]}>
+                <Ionicons name="camera" size={32} color={RED} />
+              </View>
+              <Text style={styles.cardTitle}>Photo generator</Text>
+              <Text style={styles.cardSubtitle}>AI 1x1 or 2x2 generator</Text>
               <Ionicons name="arrow-forward" size={18} color={RED} style={styles.cardArrow} />
             </TouchableOpacity>
           </View>
