@@ -3,5 +3,9 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+  "terminal.integrated.gpuAcceleration": "off",
+  "terminal.integrated.minimumContrastRatio": 1,
+  "terminal.integrated.fontFamily": "Cascadia Mono, Consolas, 'Courier New', monospace",
+  "terminal.integrated.fontSize": 14
 }
