@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { resumeTemplates } from '@/components/resume/templates';
 import { getTemplateRecommendations, generateResume } from '@/services/aiService';
 import { useResumeContext } from '@/context/ResumeContext';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { resumeService, SavedResume } from '@/services/resumeService';
 import { Ionicons } from '@expo/vector-icons';
@@ -89,6 +89,7 @@ export default function ResumeFormScreen() {
   const textColor = useThemeColor({}, 'text');
   const { setGeneratedResumeData, setSelectedTemplateId: setContextSelectedTemplateId } = useResumeContext();
   const router = useRouter();
+  const { step } = useLocalSearchParams();
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     firstName: '',
@@ -401,6 +402,12 @@ export default function ResumeFormScreen() {
       setLoadingTemplates(false);
     }
   };
+
+  useEffect(() => {
+    if (step === 'templates') {
+      handleBuildResume();
+    }
+  }, [step]);
 
 
 

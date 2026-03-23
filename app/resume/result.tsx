@@ -14,6 +14,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useResumeContext } from '@/context/ResumeContext';
 import { useAuth } from '@/context/AuthContext';
 import ResumeDocument from '@/components/resume/ResumeDocument';
+import { Ionicons } from '@expo/vector-icons';
 import { exportResumeToPDF } from '@/utils/pdfGenerator';
 import { resumeService } from '@/services/resumeService';
 import { useEffect } from 'react';
@@ -27,7 +28,6 @@ export default function ResumeResultScreen() {
   const [saving, setSaving] = useState(false);
 
   const templateId = selectedTemplateId ?? 'chronological';
-
 
   const handleSavePDF = async () => {
     if (!generatedResumeData) return;
@@ -51,15 +51,21 @@ export default function ResumeResultScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Your Resume</Text>
-          <Text style={styles.headerSubtitle}>
-            Template: {templateId.charAt(0).toUpperCase() + templateId.slice(1)}
-          </Text>
+          <TouchableOpacity onPress={() => router.push('/home')} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>Your Resume</Text>
+            <View style={styles.templateBadge}>
+              <Text style={styles.templateBadgeText}>
+                {templateId.charAt(0).toUpperCase() + templateId.slice(1).replace('-', ' ')}
+              </Text>
+            </View>
+          </View>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Resume document scroll area */}
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -75,32 +81,39 @@ export default function ResumeResultScreen() {
           <View style={{ height: 20 }} />
         </ScrollView>
 
-        {/* Action buttons */}
         <View style={styles.actions}>
           <TouchableOpacity
             style={[styles.actionBtn, styles.pdfBtn]}
             onPress={handleSavePDF}
             disabled={saving || !generatedResumeData}
+            activeOpacity={0.8}
           >
             {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.pdfBtnText}>Save Document</Text>
+              <>
+                <Ionicons name="download" size={20} color="#fff" />
+                <Text style={styles.pdfBtnText}>Download as PDF</Text>
+              </>
             )}
           </TouchableOpacity>
 
           <View style={styles.rowActions}>
             <TouchableOpacity
               style={[styles.actionBtn, styles.secondaryBtn]}
-              onPress={() => router.back()}
+              onPress={() => router.push('/resume/form?step=templates')}
+              activeOpacity={0.6}
             >
-              <Text style={styles.secondaryBtnText}>✏️  Continue Editing</Text>
+              <Ionicons name="create-outline" size={18} color="#4B5563" />
+              <Text style={styles.secondaryBtnText}>Edit Template</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, styles.secondaryBtn]}
               onPress={() => router.push('/home')}
+              activeOpacity={0.6}
             >
-              <Text style={styles.secondaryBtnText}>🏠  Go Home</Text>
+              <Ionicons name="home-outline" size={18} color="#4B5563" />
+              <Text style={styles.secondaryBtnText}>Dashboard</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -110,70 +123,104 @@ export default function ResumeResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f4f4' },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
 
   header: {
-    backgroundColor: RED,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  headerTextContainer: {
+    alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '800',
+    color: '#111827',
+    fontSize: 18,
+    fontWeight: '700',
   },
-  headerSubtitle: {
-    color: '#ffcdd2',
-    fontSize: 13,
+  templateBadge: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
     marginTop: 2,
+  },
+  templateBadgeText: {
+    color: RED,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 12, paddingTop: 16 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 30 },
 
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
   },
-  emptyText: { fontSize: 16, color: '#888' },
+  emptyText: { fontSize: 16, color: '#9CA3AF' },
 
   actions: {
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 24,
-    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 24,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 12,
   },
   rowActions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   actionBtn: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
+    flexDirection: 'row',
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pdfBtn: {
     backgroundColor: RED,
+    shadowColor: RED,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   pdfBtnText: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 16,
+    marginLeft: 10,
   },
   secondaryBtn: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E5E7EB',
   },
   secondaryBtnText: {
-    color: '#333',
+    color: '#4B5563',
     fontWeight: '600',
     fontSize: 14,
+    marginLeft: 8,
   },
 });
