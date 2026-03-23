@@ -3,15 +3,21 @@ import * as FileSystemLegacy from 'expo-file-system/legacy';
 
 type FormalPhotoSize = '1x1' | '2x2';
 
+type GeminiModelInfo = {
+  name?: string;
+  supportedGenerationMethods?: string[];
+};
+
 const GEMINI_API_KEY =
   Constants.expoConfig?.extra?.geminiApiKey ||
   process.env.EXPO_PUBLIC_GEMINI_API_KEY ||
   '';
 
-// M O D E L S
-const IMAGE_MODELS = [
+const IMAGE_MODELS_FALLBACK = [
   'gemini-2.0-flash-preview-image-generation',
   'gemini-2.0-flash-exp-image-generation',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash-latest',
 ];
 
 function getMimeTypeFromUri(uri: string): string {
@@ -92,6 +98,45 @@ async function callImageModel(model: string, prompt: string, base64Image: string
   return response.json();
 }
 
+async function getAvailableModelNames(): Promise<string[]> {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+    method: 'GET',
+    headers: {
+      'x-goog-api-key': GEMINI_API_KEY,
+    },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const payload = await response.json();
+  const models: GeminiModelInfo[] = Array.isArray(payload?.models) ? payload.models : [];
+
+  return models
+    .filter((model) =>
+      Array.isArray(model.supportedGenerationMethods) &&
+      model.supportedGenerationMethods.includes('generateContent')
+    )
+    .map((model) => (model.name || '').replace(/^models\//, ''))
+    .filter(Boolean);
+}
+
+function buildCandidateModelList(available: string[]): string[] {
+  const preferred = available.filter((name) => {
+    const lower = name.toLowerCase();
+    return lower.includes('image') || lower.includes('vision');
+  });
+
+  const flash = available.filter((name) => {
+    const lower = name.toLowerCase();
+    return lower.includes('flash');
+  });
+
+  // Deduplicate while preserving order.
+  return Array.from(new Set([...preferred, ...flash, ...IMAGE_MODELS_FALLBACK]));
+}
+
 export async function generateFormalPhoto(
   sourceImageUri: string,
   size: FormalPhotoSize
@@ -106,9 +151,11 @@ export async function generateFormalPhoto(
 
   const mimeType = getMimeTypeFromUri(sourceImageUri);
   const prompt = buildPrompt(size);
+  const availableModels = await getAvailableModelNames();
+  const candidateModels = buildCandidateModelList(availableModels);
 
   let lastError: unknown;
-  for (const model of IMAGE_MODELS) {
+  for (const model of candidateModels) {
     try {
       const data = await callImageModel(model, prompt, base64Image, mimeType);
       const imagePart = extractImagePart(data);
@@ -125,7 +172,13 @@ export async function generateFormalPhoto(
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('Failed to generate formal photo.');
+  const fallbackMessage =
+    'Image generation is not available for the current Gemini API key/project. ' +
+    'Enable an image-capable Gemini model, then try again.';
+
+  if (lastError instanceof Error) {
+    throw new Error(`${lastError.message}\n\n${fallbackMessage}`);
+  }
+
+  throw new Error(fallbackMessage);
 }
