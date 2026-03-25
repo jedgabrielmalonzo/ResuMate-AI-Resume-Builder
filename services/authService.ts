@@ -22,7 +22,8 @@ const discovery: AuthSession.DiscoveryDocument = {
 };
 
 // Native Client IDs
-const GOOGLE_ANDROID_CLIENT_ID = '830045302104-bqi1ceklg5tvogvekidr172lp03vln7m.apps.googleusercontent.com';
+// Native Client IDs
+const GOOGLE_ANDROID_CLIENT_ID = '830045302104-94le0vis0cmuve7errrd7bnbgbrc224i.apps.googleusercontent.com';
 const GOOGLE_IOS_CLIENT_ID = '830045302104-i9s1onjt33mrtcn5dhh8a515d2jfck9n.apps.googleusercontent.com';
 
 /**
@@ -31,19 +32,20 @@ const GOOGLE_IOS_CLIENT_ID = '830045302104-i9s1onjt33mrtcn5dhh8a515d2jfck9n.apps
 export function useGoogleAuth() {
   const { signInWithGoogle } = useAuth();
 
-  // For Expo Go, we must use the Auth Session proxy.
-  // This URL is tied to your Expo account for development.
-  const redirectUri = 'https://auth.expo.io/@jedmalonzo/resumate';
+  // Dynamically generate the redirect URI
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: 'resumate',
+  });
 
   // Log for verification
   useEffect(() => {
-    console.log('🔑 New Redirect URI (Add to Google Console Web Client):', redirectUri);
+    console.log('🔑 Redirect URI (Ensure this is in your Google Console):', redirectUri);
   }, [redirectUri]);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
-      // When using the proxy, we MUST use the Web Client ID
-      clientId: GOOGLE_WEB_CLIENT_ID,
+      // Use Android Client ID for native Android, Web Client ID for everything else
+      clientId: Platform.OS === 'android' ? GOOGLE_ANDROID_CLIENT_ID : GOOGLE_WEB_CLIENT_ID,
       scopes: ['openid', 'profile', 'email'],
       redirectUri,
       responseType: AuthSession.ResponseType.Code,
