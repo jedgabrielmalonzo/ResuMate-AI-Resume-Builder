@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "830045302104",
+    "project_id": "resumate-c9968",
+    "storage_bucket": "resumate-c9968.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830045302104:android:bd766e9b998e9b3256892d",
+        "android_client_info": {
+          "package_name": "com.resumate.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "830045302104-94le0vis0cmuve7errrd7bnbgbrc224i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.resumate.app",
+            "certificate_hash": "dd35831ff0066281e7561ecce698f918aa4d171e"
+          }
+        },
+        {
+          "client_id": "830045302104-s66btr2rgh4g7ftnfahs3dpn0760buru.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhSf8BZzFyDZlCp1vROpU9SmDRPSLSWZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "830045302104-s66btr2rgh4g7ftnfahs3dpn0760buru.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "830045302104-1d0ogdi83l2sfb1avr98brmd73ibb1bh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.resumate.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

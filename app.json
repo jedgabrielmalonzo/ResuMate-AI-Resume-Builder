@@ -14,6 +14,7 @@
     },
     "android": {
       "package": "com.resumate.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -50,6 +51,12 @@
       "eas": {
         "projectId": "4b32d1a7-ee1a-43b2-89ad-fd8c88d674e5"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4b32d1a7-ee1a-43b2-89ad-fd8c88d674e5"
     }
   }
 }

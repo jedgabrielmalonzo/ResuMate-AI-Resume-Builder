@@ -1,6 +1,15 @@
 node_modules/
 .expo/
 dist/
+npm-debug.*
+*.jks
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+ios/
+android/
+.env
 build/
 bin/
 obj/

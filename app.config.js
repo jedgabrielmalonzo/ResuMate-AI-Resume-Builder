@@ -1,50 +1,12 @@
-module.exports = {
-  expo: {
-    name: "Resumate",
-    slug: "resumate",
-    version: "1.0.0",
-    orientation: "portrait",
-    icon: "./assets/images/icon.png",
-    scheme: "resumate",
-    userInterfaceStyle: "light",
-    newArchEnabled: true,
-    splash: {
-      image: "./assets/images/splash-icon.png",
-      resizeMode: "contain",
-      backgroundColor: "#ffffff"
-    },
-    ios: {
-      supportsTablet: true,
-      bundleIdentifier: "com.resumate.app"
-    },
+module.exports = ({ config }) => {
+  return {
+    ...config,
     android: {
-      adaptiveIcon: {
-        foregroundImage: "./assets/images/android-icon-foreground.png",
-        backgroundColor: "#ffffff"
-      },
-      package: "com.resumate.app"
-    },
-    web: {
-      bundler: "metro",
-      output: "static",
-      favicon: "./assets/images/favicon.png"
-    },
-    plugins: [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ]
-    ],
-    experiments: {
-      typedRoutes: true
+      ...config.android,
+      googleServicesFile: "./google-services.json",
     },
     extra: {
+      ...config.extra,
       eas: {
         projectId: "4b32d1a7-ee1a-43b2-89ad-fd8c88d674e5"
       },
@@ -56,5 +18,5 @@ module.exports = {
       firebaseMessagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
       firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
     }
-  }
+  };
 };
