@@ -32,14 +32,19 @@ const GOOGLE_IOS_CLIENT_ID = '830045302104-i9s1onjt33mrtcn5dhh8a515d2jfck9n.apps
 export function useGoogleAuth() {
   const { signInWithGoogle } = useAuth();
 
-  // Dynamically generate the redirect URI
+  // Force the custom scheme for native platforms to avoid the Expo Auth Proxy
   const redirectUri = AuthSession.makeRedirectUri({
     scheme: 'resumate',
+    // In dev client/standalone, this will be 'resumate://'
   });
 
   // Log for verification
   useEffect(() => {
-    console.log('🔑 Redirect URI (Ensure this is in your Google Console):', redirectUri);
+    console.log('--- AUTH DEBUG ---');
+    console.log('🔑 Platform:', Platform.OS);
+    console.log('🔑 Redirect URI:', redirectUri);
+    console.log('🔑 Android Client ID:', GOOGLE_ANDROID_CLIENT_ID);
+    console.log('------------------');
   }, [redirectUri]);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
