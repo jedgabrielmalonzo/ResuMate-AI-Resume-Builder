@@ -12,6 +12,20 @@ import {
 import { db } from './firebaseConfig';
 import { GeneratedResumeData } from '@/context/ResumeContext';
 
+export interface ResumeTemplate {
+    id: string;
+    name: string;
+    category: string;
+    formatType: 'functional' | 'chronological';
+    hasPhoto: boolean;
+    description: string;
+    sections: string[];
+    bestFor?: string;
+    jobFields?: string[];
+    tips?: string[];
+    isActive?: boolean;
+}
+
 export interface SavedResume {
     id: string;
     userId: string;
@@ -23,6 +37,7 @@ export interface SavedResume {
 }
 
 const RESUMES_COLLECTION = 'resumes';
+const TEMPLATES_COLLECTION = 'templates';
 
 export const resumeService = {
     /**
@@ -85,6 +100,33 @@ export const resumeService = {
             await deleteDoc(doc(db, RESUMES_COLLECTION, resumeId));
         } catch (error) {
             console.error('Error deleting resume:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get all active resume templates from Firestore
+     */
+    async getTemplates(): Promise<ResumeTemplate[]> {
+        try {
+            const q = query(
+                collection(db, TEMPLATES_COLLECTION),
+                where('isActive', '==', true)
+            );
+
+            const querySnapshot = await getDocs(q);
+            const templates: ResumeTemplate[] = [];
+
+            querySnapshot.forEach((doc) => {
+                templates.push({
+                    id: doc.id,
+                    ...doc.data(),
+                } as ResumeTemplate);
+            });
+
+            return templates;
+        } catch (error) {
+            console.error('Error fetching templates:', error);
             throw error;
         }
     }

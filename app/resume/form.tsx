@@ -4,7 +4,7 @@ import { getTemplateRecommendations, generateResume } from '@/services/aiService
 import { useResumeContext } from '@/context/ResumeContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { resumeService, SavedResume } from '@/services/resumeService';
+import { resumeService, SavedResume, ResumeTemplate } from '@/services/resumeService';
 import { Ionicons } from '@expo/vector-icons';
 
 import {
@@ -364,9 +364,32 @@ export default function ResumeFormScreen() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [availableTemplates, setAvailableTemplates] = useState<ResumeTemplate[]>([]);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const templates = await resumeService.getTemplates();
+        if (templates.length > 0) {
+          // De-duplicate by ID to prevent key errors
+          const uniqueTemplates = Array.from(new Map(templates.map(t => [t.id, t])).values());
+          setAvailableTemplates(uniqueTemplates);
+        } else {
+          // Fallback to hardcoded if Firestore is empty (pre-migration)
+          const { resumeTemplates } = require('@/components/resume/templates');
+          setAvailableTemplates(resumeTemplates);
+        }
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+        const { resumeTemplates } = require('@/components/resume/templates');
+        setAvailableTemplates(resumeTemplates);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   const handleGenerateResume = async () => {
-    const template = resumeTemplates.find(t => t.id === selectedTemplateId);
+    const template = availableTemplates.find(t => t.id === selectedTemplateId);
     if (!template) return;
     setGenerating(true);
     const userData = {
@@ -419,7 +442,7 @@ export default function ResumeFormScreen() {
     };
     const jobField = targetRole || professionalSummary || '';
     try {
-      const recommendations = await getTemplateRecommendations(userData, jobField, resumeTemplates);
+      const recommendations = await getTemplateRecommendations(userData, jobField, availableTemplates);
       setTemplateRecommendations(recommendations);
       setShowRecommendations(true);
     } catch (error) {
@@ -475,7 +498,7 @@ export default function ResumeFormScreen() {
                 </View>
 
                 <View style={styles.templatesGrid}>
-                  {resumeTemplates.map((template) => {
+                  {availableTemplates.map((template) => {
                     const isSelected = selectedTemplateId === template.id;
                     const isRecommended = templateRecommendations.length > 0 && templateRecommendations[0].id === template.id;
                     

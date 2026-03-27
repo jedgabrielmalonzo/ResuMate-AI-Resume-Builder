@@ -6,9 +6,10 @@ export interface ResumeTemplate {
   hasPhoto: boolean;
   description: string;
   sections: string[];
-  bestFor: string;
-  jobFields: string[];
-  tips: string[];
+  bestFor?: string;
+  jobFields?: string[];
+  tips?: string[];
+  isActive?: boolean;
 }
 
 export const resumeTemplates: ResumeTemplate[] = [
