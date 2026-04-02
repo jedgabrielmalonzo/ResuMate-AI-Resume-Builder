@@ -1,21 +1,21 @@
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import InputField from '@/components/ui/InputField';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { InterviewAI, JobDetails } from '@/services/interviewAI';
+import { Ionicons } from '@expo/vector-icons';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  ScrollView,
-  Alert,
   ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  View,
-  Text
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { InterviewAI, JobDetails } from '@/services/interviewAI';
-import ScreenHeader from '@/components/ui/ScreenHeader';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import InputField from '@/components/ui/InputField';
 
 const RED = '#c40000';
 
@@ -85,12 +85,13 @@ export default function InterviewFormScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
+        <ScreenHeader
+          title="Interview Prep"
+          subtitle="Practice with AI-generated questions tailored to your target role"
+          showBorder
+        />
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
           <ThemedView style={styles.content}>
-            <ScreenHeader 
-              title="Interview Prep" 
-              subtitle="Practice with AI-generated questions tailored to your target role"
-            />
 
             <View style={styles.infoCard}>
               <Ionicons name="information-circle" size={20} color="#666" />
@@ -170,6 +171,7 @@ export default function InterviewFormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   content: {
     padding: 20,
@@ -280,4 +282,4 @@ const styles = StyleSheet.create({
     color: RED,
     fontWeight: '600',
   },
-});
+});

@@ -1,4 +1,3 @@
-import BackButton from "@/components/ui/BackButton";
 import BottomNav from "@/components/ui/BottomNav";
 import { useAuth } from "@/context/AuthContext";
 import { useResumeContext } from "@/context/ResumeContext";
@@ -46,7 +45,7 @@ function Initials({
 
 export default function Account() {
   const router = useRouter();
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const { setGeneratedResumeData, setSelectedTemplateId } = useResumeContext();
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,60 +96,38 @@ export default function Account() {
     );
   };
 
-  const handleLogout = async () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-            router.replace("/auth/login");
-          } catch {
-            Alert.alert("Error", "Failed to sign out. Please try again.");
-          }
-        },
-      },
-    ]);
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="dark-content" />
 
-      {/* Modern Header - White themed */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <BackButton />
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutIconBtn}>
-             <Ionicons name="log-out-outline" size={24} color="#6c757d" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.profileSection}>
-          <Initials name={user?.displayName} email={user?.email} />
-          <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>
-              {user?.displayName || "User"}
-            </Text>
-            <Text style={styles.userEmail} numberOfLines={1}>
-              {user?.email}
-            </Text>
-            <View style={styles.memberBadge}>
-              <Ionicons name="sparkles" size={10} color={RED} style={{ marginRight: 4 }} />
-              <Text style={styles.memberBadgeText}>RESUMATE MEMBER</Text>
-            </View>
-          </View>
-        </View>
+      <View style={styles.pageHeader}>
+        <Text style={styles.pageHeaderTitle}>Account</Text>
       </View>
 
+      {/* Profile Card instead of stretched header */}
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        <View style={styles.header}>
+          <View style={styles.profileSection}>
+            <Initials name={user?.displayName} email={user?.email} />
+            <View style={styles.userInfo}>
+              <Text style={styles.userName} numberOfLines={1}>
+                {user?.displayName || "User"}
+              </Text>
+              <Text style={styles.userEmail} numberOfLines={1}>
+                {user?.email}
+              </Text>
+              <View style={styles.memberBadge}>
+                <Ionicons name="sparkles" size={10} color={RED} style={{ marginRight: 4 }} />
+                <Text style={styles.memberBadgeText}>RESUMATE MEMBER</Text>
+              </View>
+            </View>
+          </View>
+        </View>
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statBox}>
@@ -260,28 +237,30 @@ const styles = StyleSheet.create({
     backgroundColor: OFF_WHITE,
   },
 
-  // Header
+  pageHeader: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 5,
+    backgroundColor: OFF_WHITE,
+  },
+  pageHeaderTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#1a1a2e",
+  },
+  // Profile Card Header
   header: {
     backgroundColor: "white",
-    paddingHorizontal: 24,
-    paddingTop: 10,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    padding: 20,
+    borderRadius: 24,
+    marginTop: 10,
+    marginHorizontal: 20,
+    marginBottom: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
     shadowRadius: 10,
     elevation: 2,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoutIconBtn: {
-    padding: 4,
   },
   profileSection: {
     flexDirection: "row",

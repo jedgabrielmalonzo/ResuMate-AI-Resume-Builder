@@ -129,11 +129,12 @@ export default function InterviewQuestionsScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
+        <ScreenHeader 
+          title="Practice" 
+          subtitle={`${jobDetails.jobTitle} at ${jobDetails.companyName}`}
+          showBorder
+        />
         <ThemedView style={styles.content}>
-          <ScreenHeader 
-            title="Practice" 
-            subtitle={`${jobDetails.jobTitle} at ${jobDetails.companyName}`}
-          />
 
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>

@@ -1,61 +1,66 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../themed-text';
 import { ThemedView } from '../themed-view';
-import BackButton from './BackButton';
-
-const RED = "#c40000";
 
 interface ScreenHeaderProps {
     title: string;
     subtitle?: string;
     onBackPress?: () => void;
     backLabel?: string;
+    backgroundColor?: string;
+    showBorder?: boolean;
 }
 
 export default function ScreenHeader({
     title,
     subtitle,
-    onBackPress,
-    backLabel = 'Back to Home'
+    backgroundColor = 'transparent',
+    showBorder = false
 }: ScreenHeaderProps) {
+    const insets = useSafeAreaInsets();
+    
     return (
-        <ThemedView style={styles.header}>
-            <BackButton onPress={onBackPress} label={backLabel} style={styles.backButton} />
+        <ThemedView style={[
+            styles.container,
+            backgroundColor !== 'transparent' ? { backgroundColor } : null,
+            showBorder && styles.headerBorder
+        ]}>
             <ThemedText style={styles.title}>{title}</ThemedText>
-            {subtitle && (
-                <ThemedText style={styles.subtitle}>
-                    {subtitle}
-                </ThemedText>
-            )}
+            {subtitle ? (
+                <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>
+            ) : null}
         </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
-    header: {
-        paddingTop: 10,
-        marginBottom: 24,
-        backgroundColor: 'transparent',
+    container: {
+        paddingTop: 16,
+        paddingBottom: 24,
+        paddingHorizontal: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    backButton: {
-        paddingHorizontal: 0,
-        marginBottom: 20,
+    headerBorder: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f3f5',
     },
     title: {
-        fontSize: 32,
-        fontWeight: '900',
-        textAlign: 'center',
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#1a1a2e',
         marginBottom: 8,
-        color: RED,
-        letterSpacing: 2,
-        textTransform: 'uppercase',
+        letterSpacing: -0.5,
+        textAlign: 'center',
+        lineHeight: 32,
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: 15,
+        color: '#6c757d',
         textAlign: 'center',
-        opacity: 0.7,
-        marginBottom: 10,
-        color: '#555',
+        lineHeight: 22,
+        fontWeight: '500',
     },
 });

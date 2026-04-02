@@ -23,7 +23,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { useThemeColor } from '../../hooks/use-theme-color';
-import BackButton from '@/components/ui/BackButton';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import InputField from '@/components/ui/InputField';
 import Checkbox from '@/components/ui/Checkbox';
@@ -464,12 +463,13 @@ export default function ResumeFormScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
+        <ScreenHeader
+          title="Build Your Resume"
+          subtitle="Fill out your information to create a professional resume"
+          showBorder
+        />
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <ThemedView style={styles.content}>
-            <ScreenHeader
-              title="Build Your Resume"
-              subtitle="Fill out your information to create a professional resume"
-            />
 
             {latestResume && !showRecommendations && (
               <TouchableOpacity

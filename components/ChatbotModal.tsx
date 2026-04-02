@@ -1,18 +1,20 @@
 import { ChatMessage, sendChatMessage } from "@/services/chatService";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import Markdown from "react-native-markdown-display";
 
@@ -56,7 +58,7 @@ function TypingIndicator() {
   return (
     <View style={styles.typingWrap}>
       <View style={styles.botAvatarSmall}>
-        <Text style={styles.botAvatarText}>🤖</Text>
+        <Ionicons name="sparkles" size={12} color={RED} />
       </View>
       <View style={styles.typingBubble}>
         {dots.map((dot, i) => (
@@ -81,7 +83,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     >
       {!isUser && (
         <View style={styles.botAvatarSmall}>
-          <Text style={styles.botAvatarText}>🤖</Text>
+          <Ionicons name="sparkles" size={12} color={RED} />
         </View>
       )}
       <View
@@ -175,236 +177,252 @@ export default function ChatbotModal({ visible, onClose }: Props) {
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={false}
+      transparent={true}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.botAvatar}>
-              <Text style={styles.botAvatarLg}>🤖</Text>
-            </View>
-            <View>
-              <Text style={styles.headerTitle}>ResumAI</Text>
-              <Text style={styles.headerSubtitle}>Your career assistant</Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.closeBtn}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Text style={styles.closeIcon}>✕</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.overlay}>
+        <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); onClose(); }}>
+          <View style={styles.touchableBackdrop} />
+        </TouchableWithoutFeedback>
 
-        {/* Messages */}
         <KeyboardAvoidingView
-          style={styles.flex}
+          style={styles.sheetContainer}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={0}
         >
-          <FlatList
-            ref={listRef}
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <MessageBubble message={item} />}
-            contentContainerStyle={styles.messageList}
-            onContentSizeChange={scrollToEnd}
-            ListFooterComponent={isTyping ? <TypingIndicator /> : null}
-          />
-
-          {/* Input bar */}
-          <View style={styles.inputBar}>
-            <TextInput
-              style={styles.input}
-              value={input}
-              onChangeText={setInput}
-              placeholder="Ask me anything..."
-              placeholderTextColor="#aaa"
-              multiline
-              maxLength={500}
-              editable={!isTyping}
-              onSubmitEditing={handleSend}
-            />
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.headerBotAvatar}>
+                <Ionicons name="sparkles" size={16} color={RED} />
+              </View>
+              <View>
+                <Text style={styles.headerTitle}>ResumAI</Text>
+                <Text style={styles.headerSubtitle}>Always ready to help</Text>
+              </View>
+            </View>
             <TouchableOpacity
-              style={[
-                styles.sendBtn,
-                (!input.trim() || isTyping) && styles.sendBtnDisabled,
-              ]}
-              onPress={handleSend}
-              disabled={!input.trim() || isTyping}
-              activeOpacity={0.8}
+              onPress={onClose}
+              style={styles.closeBtn}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              {isTyping ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.sendIcon}>➤</Text>
-              )}
+              <Ionicons name="close" size={24} color="#adb5bd" />
             </TouchableOpacity>
           </View>
+
+          {/* Messages */}
+          <View style={styles.flex}>
+            <FlatList
+              ref={listRef}
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => <MessageBubble message={item} />}
+              contentContainerStyle={styles.messageList}
+              onContentSizeChange={scrollToEnd}
+              ListFooterComponent={isTyping ? <TypingIndicator /> : null}
+              showsVerticalScrollIndicator={false}
+            />
+
+            {/* Input bar */}
+            <View style={styles.inputBar}>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  value={input}
+                  onChangeText={setInput}
+                  placeholder="Ask me anything..."
+                  placeholderTextColor="#adb5bd"
+                  multiline
+                  maxLength={500}
+                  editable={!isTyping}
+                />
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.sendBtn,
+                  (!input.trim() || isTyping) && styles.sendBtnDisabled,
+                ]}
+                onPress={handleSend}
+                disabled={!input.trim() || isTyping}
+                activeOpacity={0.8}
+              >
+                {isTyping ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="arrow-up" size={20} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f5f6fa" },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  touchableBackdrop: {
+    flex: 1,
+  },
+  sheetContainer: {
+    height: '85%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    flexDirection: 'column',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 20,
+  },
   flex: { flex: 1 },
 
   // Header
   header: {
-    backgroundColor: RED,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: RED,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
-  botAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.2)",
+  headerBotAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f8f9fa",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.4)",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
   },
-  botAvatarLg: { fontSize: 22 },
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#fff",
+    color: RED,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.75)",
-    marginTop: 1,
+    color: "#868e96",
+    marginTop: 2,
+    fontWeight: '500',
   },
   closeBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#f8f9fa",
     justifyContent: "center",
     alignItems: "center",
   },
-  closeIcon: { color: "#fff", fontSize: 16, fontWeight: "700" },
 
   // Messages
   messageList: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    gap: 0,
   },
   messageRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    marginBottom: 8,
+    marginBottom: 16,
   },
   messageRowUser: { justifyContent: "flex-end" },
   messageRowBot: { justifyContent: "flex-start" },
 
   botAvatarSmall: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#fff0f0",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#f8f9fa",
     borderWidth: 1,
-    borderColor: "#ffd0d0",
+    borderColor: "#e9ecef",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 8,
   },
-  botAvatarText: { fontSize: 15 },
 
   bubble: {
     maxWidth: "75%",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
   userBubble: {
     backgroundColor: RED,
     borderBottomRightRadius: 4,
   },
   botBubble: {
-    backgroundColor: "#fff",
+    backgroundColor: "#f4f4f5", // Light sleek gray
     borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: "#eee",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
   },
-  bubbleText: { fontSize: 14, lineHeight: 20 },
+  bubbleText: { fontSize: 15, lineHeight: 22 },
   userText: { color: "#fff" },
-  botText: { color: "#222" },
+  botText: { color: "#1a1a2e" },
 
   // Typing
   typingWrap: {
     flexDirection: "row",
     alignItems: "flex-end",
-    marginBottom: 8,
-    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   typingBubble: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 18,
+    backgroundColor: "#f4f4f5",
+    borderRadius: 20,
     borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: "#eee",
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 5,
+    paddingVertical: 16,
+    gap: 4,
     alignItems: "center",
   },
   typingDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "#bbb",
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#adb5bd",
   },
 
   // Input bar
   inputBar: {
     flexDirection: "row",
     alignItems: "flex-end",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    gap: 10,
+    borderTopColor: "#f1f3f5",
+    gap: 12,
+  },
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   input: {
-    flex: 1,
-    backgroundColor: "#f5f6fa",
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#222",
-    borderWidth: 1,
-    borderColor: "#e8e8e8",
-    maxHeight: 100,
+    maxHeight: 120,
+    fontSize: 15,
+    color: "#1a1a2e",
+    minHeight: 20,
   },
   sendBtn: {
     width: 44,
@@ -413,16 +431,9 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: RED,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 5,
+    marginBottom: 2, // align visually with single line input
   },
   sendBtnDisabled: {
-    backgroundColor: "#ddd",
-    shadowOpacity: 0,
-    elevation: 0,
+    backgroundColor: "#e9ecef",
   },
-  sendIcon: { color: "#fff", fontSize: 18, marginLeft: 2 },
 });
