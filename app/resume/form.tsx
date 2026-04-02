@@ -426,6 +426,7 @@ export default function ResumeFormScreen() {
 
       router.push('/Account');
     } catch (error) {
+      console.error('GENERATE_RESUME_ERROR:', error);
       Alert.alert('Error', 'Failed to generate resume. Please try again.');
     } finally {
       setGenerating(false);

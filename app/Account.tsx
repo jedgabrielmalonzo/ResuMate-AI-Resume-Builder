@@ -4,7 +4,6 @@ import { useResumeContext } from "@/context/ResumeContext";
 import { resumeService, SavedResume } from "@/services/resumeService";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import React from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,8 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSettings } from "@/context/SettingsContext";
 
 const RED = "#c40000";
 const OFF_WHITE = "#f8f9fa";
@@ -51,6 +51,14 @@ export default function Account() {
   const { setGeneratedResumeData, setSelectedTemplateId } = useResumeContext();
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const { resolvedTheme } = useSettings();
+  const isDark = resolvedTheme === "dark";
+  const bgColor = isDark ? "#000000" : "#f8f9fa";
+  const cardColor = isDark ? "#1a1a2e" : "white";
+  const titleColor = isDark ? "#ffffff" : "#1a1a2e";
+  const textColor = isDark ? "#adb5bd" : "#6c757d";
+  const borderColor = isDark ? "#2c2c3e" : "#e9ecef";
 
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(20)).current;
@@ -151,9 +159,9 @@ export default function Account() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Floating background shapes */}
       <Animated.View
@@ -163,8 +171,8 @@ export default function Account() {
         style={[styles.bgBottom, { transform: [{ translateY: float2 }] }]}
       />
 
-      <View style={styles.pageHeader}>
-        <Text style={styles.pageHeaderTitle}>Account</Text>
+      <View style={[styles.pageHeader, { backgroundColor: bgColor }]}>
+        <Text style={[styles.pageHeaderTitle, { color: titleColor }]}>Account</Text>
       </View>
 
       <Animated.View
@@ -180,17 +188,17 @@ export default function Account() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: cardColor }]}>
           <View style={styles.profileSection}>
             <Initials name={user?.displayName || user?.email?.split('@')[0]} email={user?.email} />
             <View style={styles.userInfo}>
-              <Text style={styles.userName} numberOfLines={1}>
+              <Text style={[styles.userName, { color: titleColor }]} numberOfLines={1}>
                 {user?.displayName || (user?.email ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : "User")}
               </Text>
-              <Text style={styles.userEmail} numberOfLines={1}>
+              <Text style={[styles.userEmail, { color: textColor }]} numberOfLines={1}>
                 {user?.email}
               </Text>
-              <View style={styles.memberBadge}>
+              <View style={[styles.memberBadge, isDark && { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
                 <Ionicons name="sparkles" size={10} color={RED} style={{ marginRight: 4 }} />
                 <Text style={styles.memberBadgeText}>RESUMATE MEMBER</Text>
               </View>
@@ -198,17 +206,17 @@ export default function Account() {
           </View>
         </View>
         {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{resumes.length}</Text>
+        <View style={[styles.statsGrid, { backgroundColor: cardColor }]}>
+          <View style={[styles.statBox, { borderRightColor: borderColor }]}>
+            <Text style={[styles.statNumber, { color: titleColor }]}>{resumes.length}</Text>
             <Text style={styles.statLabel}>Resume</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{resumes.length}</Text>
+          <View style={[styles.statBox, { borderRightColor: borderColor }]}>
+            <Text style={[styles.statNumber, { color: titleColor }]}>{resumes.length}</Text>
             <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={[styles.statBox, { borderRightWidth: 0 }]}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={[styles.statNumber, { color: titleColor }]}>0</Text>
             <Text style={styles.statLabel}>Drafts</Text>
           </View>
         </View>
@@ -216,9 +224,9 @@ export default function Account() {
         {/* Resumes Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Resumes</Text>
+            <Text style={[styles.sectionTitle, { color: titleColor }]}>My Resumes</Text>
             <TouchableOpacity
-              style={styles.newResumeBtn}
+              style={[styles.newResumeBtn, { backgroundColor: cardColor, borderColor: borderColor }]}
               onPress={() => router.push("/resume/form")}
               activeOpacity={0.7}
             >
@@ -234,12 +242,12 @@ export default function Account() {
               style={{ marginTop: 20 }}
             />
           ) : resumes.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <View style={styles.emptyIconWrap}>
-                <Ionicons name="document-text-outline" size={40} color="#adb5bd" />
+            <View style={[styles.emptyCard, { backgroundColor: cardColor }]}>
+              <View style={[styles.emptyIconWrap, isDark && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]}>
+                <Ionicons name="document-text-outline" size={40} color={isDark ? "#495057" : "#adb5bd"} />
               </View>
-              <Text style={styles.emptyTitle}>No resumes yet</Text>
-              <Text style={styles.emptySubtitle}>
+              <Text style={[styles.emptyTitle, { color: titleColor }]}>No resumes yet</Text>
+              <Text style={[styles.emptySubtitle, { color: textColor }]}>
                 Build your first AI-powered resume to get started!
               </Text>
               <TouchableOpacity
@@ -254,15 +262,15 @@ export default function Account() {
             resumes.map((resume) => (
               <TouchableOpacity
                 key={resume.id}
-                style={styles.resumeCard}
+                style={[styles.resumeCard, { backgroundColor: cardColor }]}
                 onPress={() => handleViewResume(resume)}
                 activeOpacity={0.75}
               >
-                <View style={styles.resumeIconWrap}>
+                <View style={[styles.resumeIconWrap, isDark && { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
                   <Ionicons name="document" size={24} color={RED} />
                 </View>
                 <View style={styles.resumeInfo}>
-                  <Text style={styles.resumeTitle} numberOfLines={1}>
+                  <Text style={[styles.resumeTitle, { color: titleColor }]} numberOfLines={1}>
                     {resume.title}
                   </Text>
                   <Text style={styles.resumeDate}>
@@ -276,16 +284,16 @@ export default function Account() {
                   </Text>
                   <View style={styles.statusRow}>
                     <View style={styles.statusDot} />
-                    <Text style={styles.statusText}>Completed</Text>
+                    <Text style={[styles.statusText, { color: textColor }]}>Completed</Text>
                   </View>
                 </View>
                 <TouchableOpacity
                   onPress={() => handleDeleteResume(resume.id)}
                   style={styles.deleteBtn}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#adb5bd" />
+                  <Ionicons name="trash-outline" size={18} color={isDark ? "#495057" : "#adb5bd"} />
                 </TouchableOpacity>
-                <Ionicons name="chevron-forward" size={20} color="#dee2e6" />
+                <Ionicons name="chevron-forward" size={20} color={isDark ? "#2c2c3e" : "#dee2e6"} />
               </TouchableOpacity>
             ))
           )}

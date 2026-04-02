@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useGoogleAuth } from '@/services/authService';
+import { useSettings } from '@/context/SettingsContext';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
 const RED = '#c40000';
@@ -24,6 +25,15 @@ export default function LoginScreen() {
   const router = useRouter();
   const { signIn, signInWithGoogle } = useAuth();
   const { handleGoogleSignIn, isLoading: googleLoading } = useGoogleAuth();
+
+  const { resolvedTheme } = useSettings();
+  const isDark = resolvedTheme === 'dark';
+  const bgColor = isDark ? '#000000' : '#fff';
+  const cardColor = isDark ? '#1a1a2e' : '#fff';
+  const titleColor = isDark ? '#fff' : RED;
+  const inputBg = isDark ? '#121221' : '#fafafa';
+  const inputBorder = isDark ? '#2c2c3e' : '#eee';
+  const textColor = isDark ? '#adb5bd' : '#666';
 
   const anim = useRef(new Animated.Value(0)).current;
   const float1 = useRef(new Animated.Value(0)).current;
@@ -105,14 +115,22 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <Animated.View
-        style={[styles.bgTop, { transform: [{ translateY: float1 }] }]}
+        style={[
+          styles.bgTop, 
+          { transform: [{ translateY: float1 }] },
+          isDark && { backgroundColor: 'rgba(196, 0, 0, 0.05)' }
+        ]}
       />
       <Animated.View
-        style={[styles.bgBottom, { transform: [{ translateY: float2 }] }]}
+        style={[
+          styles.bgBottom, 
+          { transform: [{ translateY: float2 }] },
+          isDark && { backgroundColor: 'rgba(255, 255, 255, 0.02)' }
+        ]}
       />
 
       <Animated.View

@@ -49,11 +49,10 @@ export function useGoogleAuth() {
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
-      // Use Android Client ID for native Android, Web Client ID for everything else
-      clientId: Platform.OS === 'android' ? GOOGLE_ANDROID_CLIENT_ID : GOOGLE_WEB_CLIENT_ID,
+      clientId: Platform.OS === 'android' ? GOOGLE_ANDROID_CLIENT_ID : (Platform.OS === 'ios' ? GOOGLE_IOS_CLIENT_ID : GOOGLE_WEB_CLIENT_ID),
       scopes: ['openid', 'profile', 'email'],
       redirectUri,
-      responseType: AuthSession.ResponseType.Code,
+      responseType: AuthSession.ResponseType.IdToken,
       usePKCE: true,
     },
     discovery

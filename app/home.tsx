@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSettings } from "@/context/SettingsContext";
+import { ScrollView } from "react-native-gesture-handler";
 
 const RED = "#c40000";
 const LIGHT_GRAY = "#d3d2d2ff";
@@ -19,6 +21,13 @@ const LIGHT_GRAY = "#d3d2d2ff";
 export default function Home() {
   const router = useRouter();
   const [chatOpen, setChatOpen] = useState(false);
+  const { resolvedTheme } = useSettings();
+  const isDark = resolvedTheme === "dark";
+  const bgColor = isDark ? "#000000" : "#f8f9fa";
+  const cardColor = isDark ? "#1a1a2e" : "white";
+  const titleColor = isDark ? "#ffffff" : "#1a1a2e";
+  const textColor = isDark ? "#adb5bd" : "#6c757d";
+
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(20)).current;
 
@@ -80,8 +89,8 @@ export default function Home() {
 
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Floating background shapes - more subtle */}
       <Animated.View
@@ -117,35 +126,37 @@ export default function Home() {
             },
           ]}
         >
-          <Text style={styles.greetingTitle}>Build your future</Text>
-          <Text style={styles.description}>
+          <Text style={[styles.greetingTitle, { color: titleColor }]}>
+            Build your future
+          </Text>
+          <Text style={[styles.description, { color: textColor }]}>
             Your intelligent AI companion for finding and securing your dream career.
           </Text>
 
           {/* Action Cards */}
           <View style={styles.cardsGrid}>
             <TouchableOpacity
-              style={styles.card}
+              style={[styles.card, { backgroundColor: cardColor }]}
               onPress={handleBuildResume}
               activeOpacity={0.8}
             >
-              <View style={styles.iconCircle}>
+              <View style={[styles.iconCircle, isDark && { backgroundColor: 'rgba(196, 0, 0, 0.1)' }]}>
                 <Ionicons name="document-text" size={32} color={RED} />
               </View>
-              <Text style={styles.cardTitle}>Build my resume</Text>
+              <Text style={[styles.cardTitle, { color: titleColor }]}>Build my resume</Text>
               <Text style={styles.cardSubtitle}>AI-powered templates</Text>
               <Ionicons name="arrow-forward" size={18} color={RED} style={styles.cardArrow} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.card}
+              style={[styles.card, { backgroundColor: cardColor }]}
               onPress={handleInterviewPrep}
               activeOpacity={0.8}
             >
-              <View style={[styles.iconCircle, { backgroundColor: '#fff5f5' }]}>
+              <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(196, 0, 0, 0.1)' : '#fff5f5' }]}>
                 <Ionicons name="briefcase" size={32} color={RED} />
               </View>
-              <Text style={styles.cardTitle}>Interview prep</Text>
+              <Text style={[styles.cardTitle, { color: titleColor }]}>Interview prep</Text>
               <Text style={styles.cardSubtitle}>Practice with AI</Text>
               <Ionicons name="arrow-forward" size={18} color={RED} style={styles.cardArrow} />
             </TouchableOpacity>
@@ -171,9 +182,6 @@ export default function Home() {
     </View>
   );
 }
-
-// Support ScrollView in Home
-import { ScrollView } from "react-native-gesture-handler";
 
 const styles = StyleSheet.create({
   container: {

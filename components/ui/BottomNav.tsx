@@ -10,9 +10,9 @@ import {
 } from "react-native";
 
 const ACTIVE_COLOR = "#c40000";
-const INACTIVE_COLOR = "#000000";
-const PILL_BG = "#f0f0f0ff";
 const ACTIVE_DOT = "#c40000";
+
+import { useSettings } from "@/context/SettingsContext";
 
 type NavItemProps = {
   route: string;
@@ -25,6 +25,10 @@ type NavItemProps = {
 function NavItem({ icon, label, active, onPress }: NavItemProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const bgOpacity = useRef(new Animated.Value(active ? 1 : 0)).current;
+
+  const { resolvedTheme } = useSettings();
+  const isDark = resolvedTheme === "dark";
+  const inactiveColor = isDark ? "#adb5bd" : "#000000";
 
   useEffect(() => {
     // Scale uses native driver - runs separately
@@ -65,14 +69,14 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
           <Ionicons
             name={active ? icon : (`${icon}-outline` as any)}
             size={22}
-            color={active ? "#fff" : INACTIVE_COLOR}
+            color={active ? "#fff" : inactiveColor}
           />
         </Animated.View>
       </Animated.View>
       <Text
         style={[
           styles.label,
-          { color: active ? ACTIVE_COLOR : INACTIVE_COLOR },
+          { color: active ? ACTIVE_COLOR : inactiveColor },
         ]}
       >
         {label}
@@ -91,10 +95,13 @@ export default function BottomNav() {
   };
 
   const isActive = (route: string) => pathname === route;
+  const { resolvedTheme } = useSettings();
+  const isDark = resolvedTheme === "dark";
+  const pillBg = isDark ? "#1a1a2e" : "#f0f0f0";
 
   return (
     <View style={styles.container} pointerEvents="box-none">
-      <View style={styles.pill}>
+      <View style={[styles.pill, { backgroundColor: pillBg }]}>
         <NavItem
           route="/Account"
           icon="person"
@@ -132,7 +139,6 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: PILL_BG,
     borderRadius: 40,
     paddingVertical: 10,
     paddingHorizontal: 16,

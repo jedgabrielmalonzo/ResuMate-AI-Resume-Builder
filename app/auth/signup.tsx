@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/context/SettingsContext';
 
 const RED = '#c40000';
 
@@ -53,6 +54,15 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { signUp } = useAuth();
+
+  const { resolvedTheme } = useSettings();
+  const isDark = resolvedTheme === 'dark';
+  const bgColor = isDark ? '#000000' : '#fff';
+  const cardColor = isDark ? '#1a1a2e' : '#fff';
+  const titleColor = isDark ? '#fff' : RED;
+  const inputBg = isDark ? '#121221' : '#fafafa';
+  const inputBorder = isDark ? '#2c2c3e' : '#eee';
+  const textColor = isDark ? '#adb5bd' : '#666';
 
   const anim = useRef(new Animated.Value(0)).current;
   const float1 = useRef(new Animated.Value(0)).current;
@@ -140,14 +150,22 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <Animated.View
-        style={[styles.bgTop, { transform: [{ translateY: float1 }] }]}
+        style={[
+          styles.bgTop, 
+          { transform: [{ translateY: float1 }] },
+          isDark && { backgroundColor: 'rgba(196, 0, 0, 0.05)' }
+        ]}
       />
       <Animated.View
-        style={[styles.bgBottom, { transform: [{ translateY: float2 }] }]}
+        style={[
+          styles.bgBottom, 
+          { transform: [{ translateY: float2 }] },
+          isDark && { backgroundColor: 'rgba(255, 255, 255, 0.02)' }
+        ]}
       />
 
       <Animated.View
@@ -185,7 +203,7 @@ export default function SignupScreen() {
         <TextInput
           placeholder="Email"
           placeholderTextColor="#999"
-          style={styles.input}
+          style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: isDark ? '#fff' : '#333' }]}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -197,7 +215,7 @@ export default function SignupScreen() {
           placeholder="Password"
           placeholderTextColor="#999"
           secureTextEntry
-          style={styles.input}
+          style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: isDark ? '#fff' : '#333' }]}
           value={password}
           onChangeText={setPassword}
           editable={!loading}
@@ -207,7 +225,7 @@ export default function SignupScreen() {
           placeholder="Confirm Password"
           placeholderTextColor="#999"
           secureTextEntry
-          style={styles.input}
+          style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: isDark ? '#fff' : '#333' }]}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           editable={!loading}

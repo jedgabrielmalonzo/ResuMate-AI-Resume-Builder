@@ -154,13 +154,27 @@ Instructions:
 - ${lengthGuidance}`;
 
   const raw = await callGeminiAPI(prompt);
-  // Strip markdown code fences if present
-  const cleaned = raw.replace(/```json|```/g, '').trim();
-  const parsed = JSON.parse(cleaned) as GeneratedResumeData;
-  if (userData.photoUri) {
-    parsed.photoUri = userData.photoUri;
+  
+  // Robust JSON extraction
+  let cleaned = raw.trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  } else {
+    // If no curly braces found, try stripping markdown fences as fallback
+    cleaned = cleaned.replace(/```json|```/g, '').trim();
   }
-  return ensureTargetRoleInResume(parsed, userData?.targetRole, template);
+
+  try {
+    const parsed = JSON.parse(cleaned) as GeneratedResumeData;
+    if (userData.photoUri) {
+      parsed.photoUri = userData.photoUri;
+    }
+    return ensureTargetRoleInResume(parsed, userData?.targetRole, template);
+  } catch (parseError) {
+    console.error('Failed to parse Gemini JSON:', cleaned);
+    throw new Error('Invalid JSON format from AI');
+  }
 }
 
 export async function getTemplateRecommendations(userData: any, jobField: string, templates: ResumeTemplate[]) {
