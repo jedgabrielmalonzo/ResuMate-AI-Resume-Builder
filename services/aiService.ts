@@ -39,7 +39,7 @@ function ensureTargetRoleInResume(
       ...updated[targetRoleIndex],
       content: formalRoleLine,
     };
-    return { sections: updated };
+    return { ...data, sections: updated };
   }
 
   // 2) Otherwise prepend it to the most suitable summary/objective section.
@@ -62,7 +62,7 @@ function ensureTargetRoleInResume(
       ...updated[preferredIndex],
       content: hasRoleAlready ? existing : `${formalRoleLine}\n${existing}`.trim(),
     };
-    return { sections: updated };
+    return { ...data, sections: updated };
   }
 
   // 3) If no suitable section exists, insert a dedicated section near the top.
@@ -73,7 +73,7 @@ function ensureTargetRoleInResume(
     title: 'Career Objective',
     content: formalRoleLine,
   });
-  return { sections: inserted };
+  return { ...data, sections: inserted };
 }
 
 function getFormatInstructions(template: ResumeTemplate): string {
@@ -129,6 +129,9 @@ export async function generateResume(userData: any, template: ResumeTemplate): P
   const formatInstructions = getFormatInstructions(template);
   const lengthGuidance = 'Keep content concise but complete, suitable for a full professional resume.';
 
+  const aiUserData = { ...userData };
+  delete aiUserData.photoUri;
+
   const prompt = `You are a professional resume writer. Generate a complete, well-structured resume as a JSON object for the following person using the "${template.name}" template.
 
 Template sections to include (in order): ${sections}
@@ -136,7 +139,8 @@ Template format type: ${template.formatType}
 Format-specific writing rules: ${formatInstructions}
 
 User Information:
-${JSON.stringify(userData, null, 2)}
+${JSON.stringify(aiUserData, null, 2)}
+
 
 Instructions:
 - Return ONLY a valid JSON object, no explanation or extra text.
@@ -153,6 +157,9 @@ Instructions:
   // Strip markdown code fences if present
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleaned) as GeneratedResumeData;
+  if (userData.photoUri) {
+    parsed.photoUri = userData.photoUri;
+  }
   return ensureTargetRoleInResume(parsed, userData?.targetRole, template);
 }
 

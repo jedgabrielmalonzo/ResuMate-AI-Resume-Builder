@@ -39,8 +39,14 @@ export default function ResumeDocument({ data, templateId, legacyColors }: Props
     <View style={styles.paper}>
       {/* Header Area */}
       <View style={styles.headerArea}>
+        {hasPhoto && (
+          <View style={styles.photoContainer}>
+            <Image source={{ uri: data.photoUri! }} style={styles.photo} resizeMode="cover" />
+          </View>
+        )}
+
         <View style={[styles.headerTextContainer, hasPhoto && styles.headerTextWithPhoto]}>
-          {contactSection && (
+           {contactSection && (
             <View style={styles.contactContainer}>
               {contactSection.content.split('\n').map((line, i) => (
                 <Text key={i} style={[
@@ -59,12 +65,6 @@ export default function ResumeDocument({ data, templateId, legacyColors }: Props
             </View>
           )}
         </View>
-        
-        {hasPhoto && (
-          <View style={styles.photoContainer}>
-            <Image source={{ uri: data.photoUri! }} style={styles.photo} resizeMode="cover" />
-          </View>
-        )}
       </View>
 
       {/* Main Sections */}

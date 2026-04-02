@@ -12,9 +12,9 @@ const TEMPLATE_COLORS: Record<string, { accent: string; text: string }> = {
   executive: { accent: '#1A237E', text: '#ffffff' },
 };
 
-function buildResumeHTML(data: GeneratedResumeData, templateId: string, legacyColors?: boolean): string {
+function buildResumeHTML(data: GeneratedResumeData, templateId: string, base64Photo?: string, legacyColors?: boolean): string {
   const isPhotoTemplate = templateId.includes('photo');
-  const hasPhoto = isPhotoTemplate && data.photoUri;
+  const hasPhoto = isPhotoTemplate && base64Photo;
 
   // Extract sections
   const contactSection = data.sections.find(s => s.title.toLowerCase().includes('contact'));
@@ -32,12 +32,16 @@ function buildResumeHTML(data: GeneratedResumeData, templateId: string, legacyCo
   let headerHTML = '';
   
   if (contactSection) {
-    const lines = contactSection.content.split('\n').filter(l => l.trim());
+    // If the old resume cached the broken photo url text, strip it out dynamically here
+    const lines = contactSection.content
+      .split('\n')
+      .filter(l => l.trim() && !l.includes('Photo: file://'));
+
     const name = lines.length > 0 ? lines[0] : '';
     const otherContact = lines.slice(1).join(' | ');
     
     headerHTML += `
-      <div style="text-align: center; margin-bottom: 8px;">
+      <div style="text-align: ${hasPhoto ? 'left' : 'center'}; margin-bottom: 8px;">
         <h1 style="margin: 0; font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">${name}</h1>
         <p style="margin: 6px 0 0 0; font-size: 11px; color: #444;">${otherContact}</p>
       </div>
@@ -52,16 +56,16 @@ function buildResumeHTML(data: GeneratedResumeData, templateId: string, legacyCo
     `;
   }
 
-  // Wrap header to support right-aligned photo
+  // Wrap header to support left-aligned photo
   let topAreaHTML = headerHTML;
   if (hasPhoto) {
     topAreaHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
-        <div style="flex: 1; padding-right: 20px;">
-          ${headerHTML}
+      <div style="display: flex; flex-direction: row; align-items: flex-start; margin-bottom: 24px;">
+        <div style="width: 100px; height: 100px; flex-shrink: 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-right: 20px;">
+          <img src="${base64Photo}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
-        <div style="width: 100px; height: 100px; flex-shrink: 0; border: 1px solid #ccc; padding: 2px;">
-          <img src="${data.photoUri}" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div style="flex: 1;">
+          ${headerHTML}
         </div>
       </div>
     `;
@@ -190,7 +194,24 @@ export async function exportResumeToPDF(
   templateId: string,
   legacyColors?: boolean
 ): Promise<{ fileName: string; uri: string }> {
-  const html = buildResumeHTML(data, templateId, legacyColors);
+  // Read local file as base64 if available to render cleanly in WebKit/PDF
+  let base64Photo: string | undefined = undefined;
+  if (data.photoUri && templateId.includes('photo')) {
+    if (data.photoUri.startsWith('data:image')) {
+      // It was already converted to base64 properly during Image Selection
+      base64Photo = data.photoUri;
+    } else {
+      try {
+        const FileSystem = require('expo-file-system');
+        const rawBase64 = await FileSystem.readAsStringAsync(data.photoUri, { enum: 1, encoding: FileSystem.EncodingType.Base64 });
+        base64Photo = `data:image/jpeg;base64,${rawBase64}`;
+      } catch (err) {
+        console.warn("Failed to encode photo to base64 for PDF", err);
+      }
+    }
+  }
+
+  const html = buildResumeHTML(data, templateId, base64Photo, legacyColors);
   const fileName = buildResumeFileName(templateId);
 
   // Generate PDF to app's temp cache — no permissions required.

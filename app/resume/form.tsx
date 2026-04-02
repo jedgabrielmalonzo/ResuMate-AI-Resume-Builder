@@ -163,14 +163,21 @@ export default function ResumeFormScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'] as any,
       allowsEditing: true,
       aspect: [1, 1], // 1x1 ratio
-      quality: 0.8,
+      quality: 0.3, // Compressed heavily to fit comfortably in Firestore documents
+      base64: true, // Export as base64 string
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      setPhotoUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      if (asset.base64) {
+        // Safe to store locally and remotely directly
+        setPhotoUri(`data:image/jpeg;base64,${asset.base64}`);
+      } else {
+        setPhotoUri(asset.uri);
+      }
     }
   };
 
