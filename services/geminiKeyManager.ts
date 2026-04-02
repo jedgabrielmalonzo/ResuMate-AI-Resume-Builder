@@ -54,10 +54,10 @@ export async function fetchWithGeminiFallback(url: string, options: any, maxRetr
 
       // Status 429 = Too Many Requests / Quota Exceeded
       // Status 403 = Forbidden / API key issues or Quota exceeded
-      if (response.status === 429 || response.status === 403) {
+      if (response.status === 429 || response.status === 403 || response.status === 503) {
         const errorText = await response.text();
         lastError = new Error(`Gemini API Error: ${response.status} - ${errorText}`);
-        console.warn(`[GeminiKeyManager] Hit rate limit on key ${currentKeyIndex}. Rotating...`);
+        console.warn(`[GeminiKeyManager] Service Unavailable or Rate Limit on key ${currentKeyIndex}. Rotating...`);
         advanceGeminiKey();
         retries++;
         continue; // Try with the new key in the next loop
