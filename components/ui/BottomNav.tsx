@@ -22,6 +22,11 @@ type NavItemProps = {
   onPress: () => void;
 };
 
+interface BottomNavProps {
+  activeIndex?: number;
+  onTabPress?: (index: number) => void;
+}
+
 function NavItem({ icon, label, active, onPress }: NavItemProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const bgOpacity = useRef(new Animated.Value(active ? 1 : 0)).current;
@@ -85,16 +90,27 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
   );
 }
 
-export default function BottomNav() {
+export default function BottomNav({ activeIndex, onTabPress }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleNavigation = (route: string) => {
+  const isControlled = activeIndex !== undefined && onTabPress !== undefined;
+
+  const handleNavigation = (route: string, index: number) => {
+    if (isControlled) {
+      onTabPress(index);
+      return;
+    }
+    
     if (pathname === route) return;
     router.replace(route as any);
   };
 
-  const isActive = (route: string) => pathname === route;
+  const isActive = (route: string, index: number) => {
+    if (isControlled) return activeIndex === index;
+    return pathname === route;
+  };
+
   const { resolvedTheme } = useSettings();
   const isDark = resolvedTheme === "dark";
   const pillBg = isDark ? "#1a1a2e" : "#f0f0f0";
@@ -106,22 +122,22 @@ export default function BottomNav() {
           route="/Account"
           icon="person"
           label="Account"
-          active={isActive("/Account")}
-          onPress={() => handleNavigation("/Account")}
+          active={isActive("/Account", 0)}
+          onPress={() => handleNavigation("/Account", 0)}
         />
         <NavItem
           route="/home"
           icon="home"
           label="Home"
-          active={isActive("/home")}
-          onPress={() => handleNavigation("/home")}
+          active={isActive("/home", 1)}
+          onPress={() => handleNavigation("/home", 1)}
         />
         <NavItem
           route="/settings"
           icon="settings"
           label="Settings"
-          active={isActive("/settings")}
-          onPress={() => handleNavigation("/settings")}
+          active={isActive("/settings", 2)}
+          onPress={() => handleNavigation("/settings", 2)}
         />
       </View>
     </View>
