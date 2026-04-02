@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../themed-text';
 import { ThemedView } from '../themed-view';
@@ -7,8 +7,6 @@ import { ThemedView } from '../themed-view';
 interface ScreenHeaderProps {
     title: string;
     subtitle?: string;
-    onBackPress?: () => void;
-    backLabel?: string;
     backgroundColor?: string;
     showBorder?: boolean;
 }

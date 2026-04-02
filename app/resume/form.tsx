@@ -471,6 +471,16 @@ export default function ResumeFormScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
+        <View style={styles.topNav}>
+          <TouchableOpacity 
+            onPress={() => router.push('/home')} 
+            style={styles.backBtn}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={28} color="#1a1a2e" />
+          </TouchableOpacity>
+        </View>
+        
         <ScreenHeader
           title="Build Your Resume"
           subtitle="Fill out your information to create a professional resume"
@@ -506,9 +516,11 @@ export default function ResumeFormScreen() {
                 </View>
 
                 <View style={styles.templatesGrid}>
-                  {availableTemplates.map((template) => {
-                    const isSelected = selectedTemplateId === template.id;
-                    const isRecommended = templateRecommendations.length > 0 && templateRecommendations[0].id === template.id;
+                  {availableTemplates
+                    .filter(template => photoUri ? template.hasPhoto === true : template.hasPhoto === false)
+                    .map((template) => {
+                      const isSelected = selectedTemplateId === template.id;
+                      const isRecommended = templateRecommendations.length > 0 && templateRecommendations[0].id === template.id;
                     
                     return (
                       <TouchableOpacity 
@@ -1020,6 +1032,19 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+  },
+  topNav: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: '#fff',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
   },
   title: {
     fontSize: 28,

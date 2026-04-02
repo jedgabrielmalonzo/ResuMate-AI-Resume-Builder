@@ -85,6 +85,16 @@ export default function InterviewFormScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
+        <View style={styles.topNav}>
+          <TouchableOpacity 
+            onPress={() => router.push('/home')} 
+            style={styles.backBtn}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={28} color="#1a1a2e" />
+          </TouchableOpacity>
+        </View>
+        
         <ScreenHeader
           title="Interview Prep"
           subtitle="Practice with AI-generated questions tailored to your target role"
@@ -176,6 +186,19 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingBottom: 40,
+  },
+  topNav: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: '#fff',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
   },
   infoCard: {
     flexDirection: 'row',
