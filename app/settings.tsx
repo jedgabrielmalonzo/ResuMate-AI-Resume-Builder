@@ -3,9 +3,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Linking,
   Modal,
   SafeAreaView,
@@ -37,6 +38,58 @@ export default function SettingsScreen() {
   } = useSettings();
 
   const [activeModal, setActiveModal] = useState<ModalContent>(null);
+
+  const fade = useRef(new Animated.Value(0)).current;
+  const slide = useRef(new Animated.Value(20)).current;
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Page Transitions
+    Animated.parallel([
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slide, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Floating Backgrounds
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float1, {
+          toValue: -15,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(float1, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float2, {
+          toValue: 10,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(float2, {
+          toValue: 0,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
 
   const handleLogout = async () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -209,6 +262,14 @@ export default function SettingsScreen() {
         barStyle={resolvedTheme === "dark" ? "light-content" : "dark-content"}
       />
 
+      {/* Floating background shapes */}
+      <Animated.View
+        style={[styles.bgTop, { transform: [{ translateY: float1 }] }]}
+      />
+      <Animated.View
+        style={[styles.bgBottom, { transform: [{ translateY: float2 }] }]}
+      />
+
       <View
         style={[
           styles.header,
@@ -225,133 +286,141 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity
-          style={[
-            styles.profileCard,
-            resolvedTheme === "dark" && styles.bgDark,
-          ]}
-          onPress={() => router.push("/Account")}
-          activeOpacity={0.9}
-        >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.displayName
-                ? user.displayName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                : user?.email?.[0]?.toUpperCase() || "U"}
-            </Text>
-          </View>
-          <View style={styles.profileInfo}>
-            <Text
-              style={[
-                styles.profileName,
-                resolvedTheme === "dark" && styles.textDark,
-              ]}
-            >
-              {user?.displayName || "User"}
-            </Text>
-            <Text style={styles.profileEmail}>{user?.email}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#dee2e6" />
-        </TouchableOpacity>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
-          <View
-            style={[
-              styles.sectionCard,
-              resolvedTheme === "dark" && styles.bgDark,
-            ]}
-          >
-            <SettingItem
-              icon="color-palette-outline"
-              label="Theme"
-              value={
-                themePreference.charAt(0).toUpperCase() +
-                themePreference.slice(1)
-              }
-              onPress={showThemePicker}
-            />
-            <SettingItem
-              icon="notifications-outline"
-              label="Push Notifications"
-              hasSwitch={true}
-              switchValue={notificationsEnabled}
-              onSwitchChange={setNotificationsEnabled}
-            />
-            <SettingItem
-              icon="language-outline"
-              label="Language"
-              value={language === "en" ? "English" : "Tagalog"}
-              isLast={true}
-              onPress={showLanguagePicker}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support & Info</Text>
-          <View
-            style={[
-              styles.sectionCard,
-              resolvedTheme === "dark" && styles.bgDark,
-            ]}
-          >
-            <SettingItem
-              icon="shield-checkmark-outline"
-              label="Privacy Policy"
-              onPress={() => setActiveModal("privacy")}
-            />
-            <SettingItem
-              icon="document-text-outline"
-              label="Terms of Service"
-              onPress={() => setActiveModal("terms")}
-            />
-            <SettingItem
-              icon="mail-outline"
-              label="Contact Support"
-              onPress={async () => {
-                const url = "mailto:support@resumate.app";
-                const supported = await Linking.canOpenURL(url);
-                if (supported) {
-                  await Linking.openURL(url);
-                } else {
-                  Alert.alert(
-                    "Error",
-                    "No email app found. Please contact us at support@resumate.app",
-                  );
-                }
-              }}
-            />
-            <SettingItem
-              icon="information-circle-outline"
-              label="About Resumate"
-              value="v1.0.0"
-              isLast={true}
-              onPress={() => setActiveModal("about")}
-            />
-          </View>
-        </View>
-
-        <View style={styles.accountActions}>
+      <Animated.View 
+        style={{ 
+          flex: 1, 
+          opacity: fade, 
+          transform: [{ translateY: slide }] 
+        }}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <TouchableOpacity
             style={[
-              styles.logoutButton,
+              styles.profileCard,
               resolvedTheme === "dark" && styles.bgDark,
             ]}
-            onPress={handleLogout}
-            activeOpacity={0.7}
+            onPress={() => router.push("/Account")}
+            activeOpacity={0.9}
           >
-            <Text style={styles.logoutText}>Sign Out</Text>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.displayName
+                  ? user.displayName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                  : user?.email?.[0]?.toUpperCase() || "U"}
+              </Text>
+            </View>
+            <View style={styles.profileInfo}>
+              <Text
+                style={[
+                  styles.profileName,
+                  resolvedTheme === "dark" && styles.textDark,
+                ]}
+              >
+                {user?.displayName || (user?.email ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : "User")}
+              </Text>
+              <Text style={styles.profileEmail}>{user?.email}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#dee2e6" />
           </TouchableOpacity>
-          <Text style={styles.versionText}>i love maam daisy</Text>
-        </View>
 
-        <View style={{ height: 120 }} />
-      </ScrollView>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Preferences</Text>
+            <View
+              style={[
+                styles.sectionCard,
+                resolvedTheme === "dark" && styles.bgDark,
+              ]}
+            >
+              <SettingItem
+                icon="color-palette-outline"
+                label="Theme"
+                value={
+                  themePreference.charAt(0).toUpperCase() +
+                  themePreference.slice(1)
+                }
+                onPress={showThemePicker}
+              />
+              <SettingItem
+                icon="notifications-outline"
+                label="Push Notifications"
+                hasSwitch={true}
+                switchValue={notificationsEnabled}
+                onSwitchChange={setNotificationsEnabled}
+              />
+              <SettingItem
+                icon="language-outline"
+                label="Language"
+                value={language === "en" ? "English" : "Tagalog"}
+                isLast={true}
+                onPress={showLanguagePicker}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Support & Info</Text>
+            <View
+              style={[
+                styles.sectionCard,
+                resolvedTheme === "dark" && styles.bgDark,
+              ]}
+            >
+              <SettingItem
+                icon="shield-checkmark-outline"
+                label="Privacy Policy"
+                onPress={() => setActiveModal("privacy")}
+              />
+              <SettingItem
+                icon="document-text-outline"
+                label="Terms of Service"
+                onPress={() => setActiveModal("terms")}
+              />
+              <SettingItem
+                icon="mail-outline"
+                label="Contact Support"
+                onPress={async () => {
+                  const url = "mailto:support@resumate.app";
+                  const supported = await Linking.canOpenURL(url);
+                  if (supported) {
+                    await Linking.openURL(url);
+                  } else {
+                    Alert.alert(
+                      "Error",
+                      "No email app found. Please contact us at support@resumate.app",
+                    );
+                  }
+                }}
+              />
+              <SettingItem
+                icon="information-circle-outline"
+                label="About Resumate"
+                value="v1.0.0"
+                isLast={true}
+                onPress={() => setActiveModal("about")}
+              />
+            </View>
+          </View>
+
+          <View style={styles.accountActions}>
+            <TouchableOpacity
+              style={[
+                styles.logoutButton,
+                resolvedTheme === "dark" && styles.bgDark,
+              ]}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.logoutText}>Sign Out</Text>
+            </TouchableOpacity>
+            <Text style={styles.versionText}>i love maam daisy</Text>
+          </View>
+
+          <View style={{ height: 120 }} />
+        </ScrollView>
+      </Animated.View>
 
       <InfoModal />
       <BottomNav />
@@ -387,6 +456,28 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     color: "#1a1a2e",
+  },
+  bgTop: {
+    position: "absolute",
+    top: -100,
+    right: -100,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: "#ffecec",
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  bgBottom: {
+    position: "absolute",
+    bottom: -150,
+    left: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "#f1f3f5",
+    opacity: 0.6,
+    zIndex: -1,
   },
   content: {
     flex: 1,

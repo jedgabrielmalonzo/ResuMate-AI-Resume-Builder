@@ -4,10 +4,11 @@ import { useResumeContext } from "@/context/ResumeContext";
 import { resumeService, SavedResume } from "@/services/resumeService";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -15,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const RED = "#c40000";
@@ -49,6 +51,58 @@ export default function Account() {
   const { setGeneratedResumeData, setSelectedTemplateId } = useResumeContext();
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fade = useRef(new Animated.Value(0)).current;
+  const slide = useRef(new Animated.Value(20)).current;
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Page Transitions
+    Animated.parallel([
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slide, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Floating Backgrounds
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float1, {
+          toValue: -15,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(float1, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float2, {
+          toValue: 10,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(float2, {
+          toValue: 0,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
 
   useEffect(() => {
     const fetchResumes = async () => {
@@ -101,22 +155,37 @@ export default function Account() {
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="dark-content" />
 
+      {/* Floating background shapes */}
+      <Animated.View
+        style={[styles.bgTop, { transform: [{ translateY: float1 }] }]}
+      />
+      <Animated.View
+        style={[styles.bgBottom, { transform: [{ translateY: float2 }] }]}
+      />
+
       <View style={styles.pageHeader}>
         <Text style={styles.pageHeaderTitle}>Account</Text>
       </View>
 
-      {/* Profile Card instead of stretched header */}
-      <ScrollView
-        style={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: fade,
+          transform: [{ translateY: slide }],
+        }}
       >
+        {/* Profile Card instead of stretched header */}
+        <ScrollView
+          style={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
         <View style={styles.header}>
           <View style={styles.profileSection}>
-            <Initials name={user?.displayName} email={user?.email} />
+            <Initials name={user?.displayName || user?.email?.split('@')[0]} email={user?.email} />
             <View style={styles.userInfo}>
               <Text style={styles.userName} numberOfLines={1}>
-                {user?.displayName || "User"}
+                {user?.displayName || (user?.email ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : "User")}
               </Text>
               <Text style={styles.userEmail} numberOfLines={1}>
                 {user?.email}
@@ -224,11 +293,12 @@ export default function Account() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+    </Animated.View>
 
-      {/* Bottom Nav */}
-      <BottomNav />
-    </SafeAreaView>
-  );
+    {/* Bottom Nav */}
+    <BottomNav />
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
@@ -247,6 +317,28 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     color: "#1a1a2e",
+  },
+  bgTop: {
+    position: "absolute",
+    top: -100,
+    right: -100,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: "#ffecec",
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  bgBottom: {
+    position: "absolute",
+    bottom: -150,
+    left: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "#f1f3f5",
+    opacity: 0.6,
+    zIndex: -1,
   },
   // Profile Card Header
   header: {
