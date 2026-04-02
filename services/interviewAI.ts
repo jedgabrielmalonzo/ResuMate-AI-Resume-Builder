@@ -1,15 +1,13 @@
-import Constants from 'expo-constants';
+import { fetchWithGeminiFallback } from './geminiKeyManager';
 
 // Direct REST API call to Gemini
-const GEMINI_API_KEY = Constants.expoConfig?.extra?.geminiApiKey || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
 async function callGeminiAPI(prompt: string): Promise<string> {
-  const response = await fetch(GEMINI_API_URL, {
+  const response = await fetchWithGeminiFallback(GEMINI_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-goog-api-key': GEMINI_API_KEY,
     },
     body: JSON.stringify({
       contents: [{
@@ -19,11 +17,6 @@ async function callGeminiAPI(prompt: string): Promise<string> {
       }]
     })
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-  }
 
   const data = await response.json();
   return data.candidates[0].content.parts[0].text;
@@ -127,7 +120,7 @@ Make questions realistic and relevant to the specific role.
     const role = jobDetails.jobTitle.toLowerCase();
     
     // Base questions for all roles
-    let questions = [
+    let questions: InterviewQuestion[] = [
       {
         id: 'q1',
         question: `Tell me about your experience relevant to the ${jobDetails.jobTitle} position.`,

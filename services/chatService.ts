@@ -48,6 +48,8 @@ function buildContents(history: ChatMessage[]) {
   }));
 }
 
+import { fetchWithGeminiFallback } from './geminiKeyManager';
+
 export async function sendChatMessage(
   history: ChatMessage[],
   userText: string
@@ -57,7 +59,7 @@ export async function sendChatMessage(
     { id: '', role: 'user', text: userText },
   ]);
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+  const response = await fetchWithGeminiFallback(GEMINI_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -67,11 +69,6 @@ export async function sendChatMessage(
       contents,
     }),
   });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini error ${response.status}: ${err}`);
-  }
 
   const data = await response.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? 'Sorry, I could not get a response. Please try again.';
