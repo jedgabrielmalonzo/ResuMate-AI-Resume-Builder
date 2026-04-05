@@ -22,7 +22,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, role: UserRole) => Promise<void>;
-  signInWithGoogle: (credential: any) => Promise<void>;
+  signInWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -67,7 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   };
 
-  const signInWithGoogle = async (credential: any) => {
+  const signInWithGoogle = async (idToken: string) => {
+    const credential = GoogleAuthProvider.credential(idToken);
     const userCredential = await signInWithCredential(auth, credential);
     const { user } = userCredential;
 

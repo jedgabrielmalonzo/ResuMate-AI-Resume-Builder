@@ -5,6 +5,9 @@ module.exports = ({ config }) => {
       ...config.android,
       googleServicesFile: "./google-services.json",
     },
+    plugins: [
+      "@react-native-google-signin/google-signin"
+    ],
     extra: {
       ...config.extra,
       eas: {

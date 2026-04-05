@@ -103,9 +103,9 @@ export default function LoginScreen() {
 
   const onGoogleSignIn = async () => {
     try {
-      const userCredential = await handleGoogleSignIn();
-      if (userCredential?.user) {
-        await signInWithGoogle(userCredential);
+      const idToken = await handleGoogleSignIn();
+      if (idToken) {
+        await signInWithGoogle(idToken);
         router.replace('/home');
       }
     } catch (error) {

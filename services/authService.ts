@@ -2,82 +2,51 @@ import {
   GoogleAuthProvider, 
   signInWithCredential,
 } from 'firebase/auth';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from './firebaseConfig';
-import { useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
+import { useState } from 'react';
 
-WebBrowser.maybeCompleteAuthSession();
-
-// Google Web Client ID (from user)
+// Google Web Client ID (Required for Firebase) - This remains the Web Client ID even for native builds
 const GOOGLE_WEB_CLIENT_ID = '830045302104-s66btr2rgh4g7ftnfahs3dpn0760buru.apps.googleusercontent.com';
 
-// Google OAuth Discovery
-const discovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://oauth2.googleapis.com/token',
-  revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
-};
-
-// Native Client IDs
-// Native Client IDs
-const GOOGLE_ANDROID_CLIENT_ID = '830045302104-94le0vis0cmuve7errrd7bnbgbrc224i.apps.googleusercontent.com';
-const GOOGLE_IOS_CLIENT_ID = '830045302104-1d0ogdi83l2sfb1avr98brmd73ibb1bh.apps.googleusercontent.com';
+// Initialize Google Sign-In SDK globally
+GoogleSignin.configure({
+  webClientId: GOOGLE_WEB_CLIENT_ID,
+  offlineAccess: true,
+});
 
 /**
- * Hook to handle Google Sign-In using Authorization Code flow.
+ * Hook to handle Google Sign-In using the native SDK.
+ * This provides a smooth, Flutter-like experience with a native account picker.
  */
 export function useGoogleAuth() {
-  const { signInWithGoogle } = useAuth();
-
-  // Force the custom scheme for native platforms to avoid the Expo Auth Proxy
-  const redirectUri = 'https://auth.expo.io/@jedmalonzo/resumate';
-
-  // Log for verification
-  useEffect(() => {
-    console.log('--- AUTH DEBUG ---');
-    console.log('🔑 Platform:', Platform.OS);
-    console.log('🔑 Redirect URI:', redirectUri);
-    console.log('🔑 Android Client ID:', GOOGLE_ANDROID_CLIENT_ID);
-    console.log('------------------');
-  }, [redirectUri]);
-
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: GOOGLE_WEB_CLIENT_ID, // Use Web Client ID for all platforms for broader compatibility with expo-auth-session flows
-      scopes: ['openid', 'profile', 'email'],
-      redirectUri,
-      responseType: AuthSession.ResponseType.IdToken,
-      usePKCE: false,
-      extraParams: {
-        nonce: Math.random().toString(36).substring(7),
-      },
-    },
-    discovery
-  );
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await promptAsync();
-      if (result?.type === 'success' && result.params?.id_token) {
-        const credential = GoogleAuthProvider.credential(result.params.id_token);
-        return await signInWithCredential(auth, credential);
-      } else if (result?.type === 'success' && result.authentication?.idToken) {
-        const credential = GoogleAuthProvider.credential(result.authentication.idToken);
-        return await signInWithCredential(auth, credential);
+      setIsLoading(true);
+      
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken;
+      
+      if (!idToken) {
+        throw new Error('Native Sign-In failed: No ID Token retrieved.');
       }
-    } catch (error) {
-      console.error('Google Sign-In Error:', error);
+
+      return idToken;
+    } catch (error: any) {
+      console.error('Native Google Sign-In Error:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return {
     handleGoogleSignIn,
-    isLoading: !request,
-    redirectUri,
+    isLoading,
   };
 }
+
 
