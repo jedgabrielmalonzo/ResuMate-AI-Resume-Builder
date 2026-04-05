@@ -24,7 +24,7 @@ const discovery: AuthSession.DiscoveryDocument = {
 // Native Client IDs
 // Native Client IDs
 const GOOGLE_ANDROID_CLIENT_ID = '830045302104-94le0vis0cmuve7errrd7bnbgbrc224i.apps.googleusercontent.com';
-const GOOGLE_IOS_CLIENT_ID = '830045302104-i9s1onjt33mrtcn5dhh8a515d2jfck9n.apps.googleusercontent.com';
+const GOOGLE_IOS_CLIENT_ID = '830045302104-1d0ogdi83l2sfb1avr98brmd73ibb1bh.apps.googleusercontent.com';
 
 /**
  * Hook to handle Google Sign-In using Authorization Code flow.
@@ -33,10 +33,7 @@ export function useGoogleAuth() {
   const { signInWithGoogle } = useAuth();
 
   // Force the custom scheme for native platforms to avoid the Expo Auth Proxy
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'resumate',
-    // In dev client/standalone, this will be 'resumate://'
-  });
+  const redirectUri = 'https://auth.expo.io/@jedmalonzo/resumate';
 
   // Log for verification
   useEffect(() => {
@@ -49,11 +46,14 @@ export function useGoogleAuth() {
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
-      clientId: Platform.OS === 'android' ? GOOGLE_ANDROID_CLIENT_ID : (Platform.OS === 'ios' ? GOOGLE_IOS_CLIENT_ID : GOOGLE_WEB_CLIENT_ID),
+      clientId: GOOGLE_WEB_CLIENT_ID, // Use Web Client ID for all platforms for broader compatibility with expo-auth-session flows
       scopes: ['openid', 'profile', 'email'],
       redirectUri,
       responseType: AuthSession.ResponseType.IdToken,
-      usePKCE: true,
+      usePKCE: false,
+      extraParams: {
+        nonce: Math.random().toString(36).substring(7),
+      },
     },
     discovery
   );
