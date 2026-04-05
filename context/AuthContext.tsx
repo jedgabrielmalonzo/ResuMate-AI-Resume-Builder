@@ -1,15 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User,
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut,
-  signInWithCredential,
-  GoogleAuthProvider 
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/services/firebaseConfig';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {
+  GoogleAuthProvider,
+  User,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type UserRole = 'student' | 'worker';
 
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, role: UserRole) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
+
     // Save user role to Firestore
     await setDoc(doc(db, 'users', userCredential.user.uid), {
       email: email,
@@ -64,7 +65,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await signOut(auth);
+    try {
+      // Sign out from Firebase
+      await signOut(auth);
+      // Revoke access and sign out from Google to fully clear the session and force the account picker
+      try {
+        await GoogleSignin.revokeAccess();
+        await GoogleSignin.signOut();
+      } catch (e) {
+        // Fallback in case revokeAccess fails (e.g. no internet)
+        await GoogleSignin.signOut();
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const signInWithGoogle = async (idToken: string) => {
